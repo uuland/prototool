@@ -441,37 +441,36 @@ func getPluginFlagSetProtoFlags(protoSet *file.ProtoSet, dirPath string, genPlug
 		goFlags = append(goFlags, genPlugin.Flags)
 	}
 	genGoPluginOptions := protoSet.Config.Gen.GoPluginOptions
-	if !genGoPluginOptions.NoDefaultModifiers {
-		modifiers := make(map[string]string)
-		for subDirPath, protoFiles := range protoSet.DirPathToFiles {
-			// you cannot include the files in the same package in the Mfile=package map
-			// or otherwise protoc-gen-go, protoc-gen-gogo, etc freak out and put
-			// these packages in as imports
-			if subDirPath != dirPath {
-				for _, protoFile := range protoFiles {
-					path, err := filepath.Rel(protoSet.Config.DirPath, protoFile.Path)
-					if err != nil {
-						// TODO: best effort, maybe error
-						path = protoFile.Path
-					}
-					// TODO: if relative path in OutputPath.RelPath jumps out of import path context, this will be wrong
-					modifiers[path] = filepath.Clean(filepath.Join(genGoPluginOptions.ImportPath, genPlugin.OutputPath.RelPath, filepath.Dir(path)))
+	modifiers := make(map[string]string)
+	for subDirPath, protoFiles := range protoSet.DirPathToFiles {
+		// you cannot include the files in the same package in the Mfile=package map
+		// or otherwise protoc-gen-go, protoc-gen-gogo, etc freak out and put
+		// these packages in as imports
+		if subDirPath != dirPath {
+			for _, protoFile := range protoFiles {
+				path, err := filepath.Rel(protoSet.Config.DirPath, protoFile.Path)
+				if err != nil {
+					// TODO: best effort, maybe error
+					path = protoFile.Path
 				}
+				// TODO: if relative path in OutputPath.RelPath jumps out of import path context, this will be wrong
+				modifiers[path] = filepath.Clean(filepath.Join(genGoPluginOptions.ImportPath, genPlugin.OutputPath.RelPath, filepath.Dir(path)))
 			}
 		}
-		for key, value := range modifiers {
+	}
+	for key, value := range modifiers {
+		goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
+	}
+	if protoSet.Config.Compile.IncludeWellKnownTypes {
+		var wktModifiers map[string]string
+		// one of these two must be true, we validate this above
+		if genPlugin.Type.IsGo() {
+			wktModifiers = wkt.FilenameToGoModifierMap
+		} else if genPlugin.Type.IsGogo() {
+			wktModifiers = wkt.FilenameToGogoModifierMap
+		}
+		for key, value := range wktModifiers {
 			goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
-		}
-		if protoSet.Config.Compile.IncludeWellKnownTypes {
-			// one of these two must be true, we validate this above
-			if genPlugin.Type.IsGo() {
-				modifiers = wkt.FilenameToGoModifierMap
-			} else if genPlugin.Type.IsGogo() {
-				modifiers = wkt.FilenameToGogoModifierMap
-			}
-			for key, value := range modifiers {
-				goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
-			}
 		}
 	}
 	for key, value := range genGoPluginOptions.ExtraModifiers {

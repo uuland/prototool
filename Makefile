@@ -23,7 +23,7 @@ vendor:
 .PHONY: install
 install:
 	go install \
-		-ldflags "-X 'github.com/uber/prototool/internal/x/vars.GitCommit=$(shell git rev-list -1 HEAD)' -X 'github.com/uber/prototool/internal/x/vars.BuiltTimestamp=$(shell date -u)'" \
+		-ldflags "-X 'github.com/uber/prototool/internal/vars.GitCommit=$(shell git rev-list -1 HEAD)' -X 'github.com/uber/prototool/internal/vars.BuiltTimestamp=$(shell date -u)'" \
 		$(BINS)
 
 .PHONY: license
@@ -63,7 +63,7 @@ example: install
 
 .PHONY: internalgen
 internalgen: install
-	prototool gen internal/cmd/testdata/grpc
+	prototool generate internal/cmd/testdata/grpc
 	rm -f etc/config/example/prototool.yaml
 	prototool config init etc/config/example --uncomment
 

@@ -105,7 +105,7 @@ func getRootCommand(exitCodeAddr *int, develMode bool, args []string, stdin io.R
 	rootCmd.AddCommand(createCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(filesCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(formatCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
-	rootCmd.AddCommand(genCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
+	rootCmd.AddCommand(generateCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(grpcCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	configCmd := &cobra.Command{Use: "config"}
 	configCmd.AddCommand(configInitCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
@@ -115,7 +115,6 @@ func getRootCommand(exitCodeAddr *int, develMode bool, args []string, stdin io.R
 
 	// flags bound to rootCmd are global flags
 	flags.bindDebug(rootCmd.PersistentFlags())
-	flags.bindProtocURL(rootCmd.PersistentFlags())
 
 	if develMode {
 		rootCmd.AddCommand(binaryToJSONCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))

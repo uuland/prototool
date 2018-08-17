@@ -15,7 +15,6 @@ Prototool lets you:
 
 Prototool accomplishes this by downloading and calling protoc on the fly for you, handing error messages from protoc and your plugins, and using the generated FileDescriptorSets for internal functionality, as well as wrapping a few great external libraries already in the Protobuf ecosystem.
 
-  * [Current Status](#current-status)
   * [Installation](#installation)
   * [Quick Start](#quick-start)
   * [Full Example](#full-example)
@@ -24,7 +23,7 @@ Prototool accomplishes this by downloading and calling protoc on the fly for you
   * [Command Overview](#command-overview)
     * [prototool config init](#prototool-config-init)
     * [prototool compile](#prototool-compile)
-    * [prototool gen](#prototool-gen)
+    * [prototool generate](#prototool-generate)
     * [prototool lint](#prototool-lint)
     * [prototool format](#prototool-format)
     * [prototool create](#prototool-create)
@@ -36,16 +35,12 @@ Prototool accomplishes this by downloading and calling protoc on the fly for you
   * [Development](#development)
   * [Special Thanks](#special-thanks)
 
-## Current Status
-
-Prototool is stil in the beta stages, and should not be used in production yet. Expect breaking changes before the v1.0 release. To help with development, head to the [Development](#development) section and follow along!
-
 ## Installation
 
 Install Prototool from GitHub Releases.
 
 ```
-curl -sSL https://github.com/uber/prototool/releases/download/v0.6.0/prototool-$(uname -s)-$(uname -m) \
+curl -sSL https://github.com/uber/prototool/releases/download/v1.0.0-rc1/prototool-$(uname -s)-$(uname -m) \
   -o /usr/local/bin/prototool && \
   chmod +x /usr/local/bin/prototool
 ```
@@ -68,7 +63,7 @@ prototool create foo.proto # create the file foo.proto from a template that pass
 prototool files idl/uber # list the files that will be used after applying exclude_paths from corresponding prototool.yaml files
 prototool lint --list-linters # list all current lint rules being used
 prototool compile idl/uber # make sure all .proto files in idl/uber compile, but do not generate stubs
-prototool gen idl/uber # generate stubs, see the generation directives in the config file example
+prototool generate idl/uber # generate stubs, see the generation directives in the config file example
 prototool grpc idl/uber --address 0.0.0.0:8080 --method foo.ExcitedService/Exclamation --data '{"value":"hello"}' # call the foo.ExcitedService method Exclamation with the given data on 0.0.0.0:8080
 ```
 
@@ -127,7 +122,7 @@ Create a `prototool.yaml` file in the current directory, with all options except
 
 Compile your Protobuf files, but do not generate stubs. This has the effect of calling `protoc` with `-o /dev/null`.
 
-##### `prototool gen`
+##### `prototool generate`
 
 Compile your Protobuf files and generate stubs according to the rules in your `prototool.yaml` file. See [example/idl/uber/prototool.yaml](example/idl/uber/prototool.yaml) for an example.
 
@@ -144,7 +139,7 @@ Format a Protobuf file and print the formatted file to stdout. There are flags t
 - `-l` Write a lint error in the form file:line:column:message if a file is unformatted.
 - `-w` Overwrite the existing file instead.
 
-Conretely, the `-f` flag can be used so that the values for `java_multiple_files`, `java_outer_classname`, and `java_package` are updated to reflect what is expected by the
+Concretely, the `-f` flag can be used so that the values for `java_multiple_files`, `java_outer_classname`, and `java_package` are updated to reflect what is expected by the
 [Google Cloud APIs file structure](https://cloud.google.com/apis/design/file_structure), and the value of `go_package` is updated to reflect what we expect for the
 default Style Guide. By formatting, the linting for these values will pass by default. See the documentation below for `prototool create` for an example.
 
@@ -300,7 +295,7 @@ Prototool is meant to help enforce a consistent development style for Protobuf, 
 
 - Have all your imports start from the directory your `prototool.yaml` is in. While there is a configuration option `protoc.includes` to denote extra include directories, this is not recommended.
 - Have all Protobuf files in the same directory use the same `package`, and use the same values for `go_package`, `java_multiple_files`, `java_outer_classname`, and `java_package`.
-- Do not use long-form `go_package` values, ie use `foopb`, not `github.com/bar/baz/foo;foopb`. This helps `prototool gen` do the best job.
+- Do not use long-form `go_package` values, ie use `foopb`, not `github.com/bar/baz/foo;foopb`. This helps `prototool generate` do the best job.
 
 ## Vim Integration
 
