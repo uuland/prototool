@@ -289,6 +289,9 @@ We might want to add `github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger`
 
 A nice addition might also be `URL` and `Description` fields to the `WellKnownPlugin` type that we can output for more details for the user.
 
+Also note that grpc-gateway requires the Extended Well-Known Types, but we do not do any enforcement that this value is set. See the above
+discussion on not opting-in to the Extended Well-Known Types for the general reasoning behind this.
+
 ### 09565135b4332a008a85fe541a96044de754df5c Add --list-well-known-plugins flag to generate
 
 This adds `prototool generate --list-well-known-plugins` to print out the above specifications for the user. We might also want to add
@@ -323,3 +326,12 @@ The rest of the commits are for this Markdown file. I wanted to be able to see t
 
 The extra values I added to `GenConfig` and `GenPlugin` are also removed, as I realized through writing this document that they did
 not end up being used.
+
+## Where this proposal stops short
+
+This proposal does not include the following:
+
+- Testing for the Well-Known Plugins. I expect that there will be significant changes to this proposal, so this does not yet add
+the testing for the Well-Known Plugins. In the event we actually used this proposal as the base for the final product, this would
+be added.
+- Documentation. This does not add documentation beyond this document.
