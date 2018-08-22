@@ -56,6 +56,11 @@ type Downloader interface {
 	// If not downloaded, this downloads and caches protobuf. This is thread-safe.
 	WellKnownTypesIncludePath() (string, error)
 
+	// Get the path to include for the extended well-known types.
+	//
+	// If not downloaded, this downloads and caches protobuf. This is thread-safe.
+	ExtendedWellKnownTypesIncludePath() (string, error)
+
 	// Delete any downloaded artifacts.
 	//
 	// This is not thread-safe and no calls to other functions can be reliably

@@ -38,6 +38,7 @@ import (
 	"github.com/uber/prototool/internal/file"
 	"github.com/uber/prototool/internal/settings"
 	"github.com/uber/prototool/internal/vars"
+	"github.com/uber/prototool/internal/wkt"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
@@ -91,6 +92,14 @@ func (d *downloader) WellKnownTypesIncludePath() (string, error) {
 		return "", err
 	}
 	return filepath.Join(basePath, "include"), nil
+}
+
+func (d *downloader) ExtendedWellKnownTypesIncludePath() (string, error) {
+	basePath, err := d.Download()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(basePath, "extended", "include"), nil
 }
 
 func (d *downloader) Delete() error {
@@ -196,6 +205,20 @@ func (d *downloader) downloadInternal(basePath string, goos string, goarch strin
 			return err
 		}
 		d.logger.Debug("wrote protobuf file", zap.String("path", writeFilePath))
+	}
+	return d.writeExtendedWellKnownTypes(basePath)
+}
+
+func (d *downloader) writeExtendedWellKnownTypes(basePath string) error {
+	includePath := filepath.Join(basePath, "extended", "include")
+	for extendedFilename, fileData := range wkt.ExtendedFilenameToFileData {
+		filePath := filepath.Join(includePath, extendedFilename)
+		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(filePath, []byte(fileData), 0644); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -73,4 +73,31 @@ var (
 		"google/protobuf/type.proto":            "google.golang.org/genproto/protobuf/ptype",
 		"google/protobuf/wrappers.proto":        "github.com/gogo/protobuf/types",
 	}
+
+	// ExtendedFilenames contain the extended Well-Known Types filenames.
+	ExtendedFilenames = map[string]struct{}{
+		"google/api/annotations.proto": struct{}{},
+		"google/api/http.proto":        struct{}{},
+	}
+
+	// ExtendedFilenameToGoModifierMap is a map from filename to package for github.com/golang/protobuf.
+	ExtendedFilenameToGoModifierMap = map[string]string{
+		"google/api/annotations.proto": "google.golang.org/genproto/googleapis/api/annotations",
+		"google/api/http.proto":        "google.golang.org/genproto/googleapis/api/annotations",
+	}
+
+	// ExtendedFilenameToGogoModifierMap is a map from filename to package for github.com/gogo/protobuf.
+	ExtendedFilenameToGogoModifierMap = map[string]string{
+		"google/api/annotations.proto": "google.golang.org/genproto/googleapis/api/annotations",
+		"google/api/http.proto":        "google.golang.org/genproto/googleapis/api/annotations",
+	}
+
+	// ExtendedFilenameToFileData is a map from filename to the file data.
+	//
+	// These should be written to the cache within the include directory, using the filename
+	// to denote which directory to put each file in.
+	ExtendedFilenameToFileData = map[string]string{
+		"google/api/annotations.proto": googleAPIAnnotationsProto,
+		"google/api/http.proto":        googleAPIHTTPProto,
+	}
 )
