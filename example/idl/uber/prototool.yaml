@@ -12,19 +12,12 @@ lint:
       files:
         - foo/foo.proto
 generate:
+  output: ../../gen/proto
   go_options:
     import_path: github.com/uber/prototool/example/idl/uber
   plugins:
-    - name: gogoslick
-      type: gogo
-      flags: plugins=grpc
-      output: ../../gen/proto/go
-    - name: yarpc-go
-      type: gogo
-      output: ../../gen/proto/go
+    - alias: gogoslick-with-grpc
+    - alias: yarpc-go
       # note ../../gen/proto/java is .gitignored
-    - name: java
-      output: ../../gen/proto/java
-    - name: grpc-gateway
-      type: go
-      output: ../../gen/proto/go
+    - alias: java
+    - alias: grpc-gateway

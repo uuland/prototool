@@ -32,39 +32,43 @@ const (
 	// DefaultConfigFilename is the default config filename.
 	DefaultConfigFilename = "prototool.yaml"
 
+	// GenPluginTypeUnset says the specific plugin type was unset.
+	GenPluginTypeUnset GenPluginType = 0
 	// GenPluginTypeNone says there is no specific plugin type.
-	GenPluginTypeNone GenPluginType = iota
+	GenPluginTypeNone GenPluginType = 1
 	// GenPluginTypeGo says the plugin is a Golang plugin that
 	// is or uses github.com/golang/protobuf.
 	// This will use GenGoPluginOptions.
-	GenPluginTypeGo
+	GenPluginTypeGo GenPluginType = 2
 	// GenPluginTypeGogo says the plugin is a Golang plugin that
 	// is or uses github.com/gogo/protobuf.
 	// This will use GenGoPluginOptions.
-	GenPluginTypeGogo
+	GenPluginTypeGogo GenPluginType = 3
 )
 
 var (
 	_genPluginTypeToString = map[GenPluginType]string{
-		GenPluginTypeNone: "",
+		GenPluginTypeNone: "none",
 		GenPluginTypeGo:   "go",
 		GenPluginTypeGogo: "gogo",
 	}
 	_stringToGenPluginType = map[string]GenPluginType{
-		"":     GenPluginTypeNone,
+		"none": GenPluginTypeNone,
 		"go":   GenPluginTypeGo,
 		"gogo": GenPluginTypeGogo,
 	}
 
 	_genPluginTypeToIsGo = map[GenPluginType]bool{
-		GenPluginTypeNone: false,
-		GenPluginTypeGo:   true,
-		GenPluginTypeGogo: false,
+		GenPluginTypeUnset: false,
+		GenPluginTypeNone:  false,
+		GenPluginTypeGo:    true,
+		GenPluginTypeGogo:  false,
 	}
 	_genPluginTypeToIsGogo = map[GenPluginType]bool{
-		GenPluginTypeNone: false,
-		GenPluginTypeGo:   false,
-		GenPluginTypeGogo: true,
+		GenPluginTypeUnset: false,
+		GenPluginTypeNone:  false,
+		GenPluginTypeGo:    false,
+		GenPluginTypeGogo:  true,
 	}
 )
 
@@ -73,6 +77,9 @@ type GenPluginType int
 
 // String implements fmt.Stringer.
 func (g GenPluginType) String() string {
+	if g == GenPluginTypeUnset {
+		return ""
+	}
 	if s, ok := _genPluginTypeToString[g]; ok {
 		return s
 	}
@@ -99,6 +106,9 @@ func (g GenPluginType) IsGogo() bool {
 //
 // Input is case-insensitive.
 func ParseGenPluginType(s string) (GenPluginType, error) {
+	if s == "" {
+		return GenPluginTypeUnset, nil
+	}
 	genPluginType, ok := _stringToGenPluginType[strings.ToLower(s)]
 	if !ok {
 		return GenPluginTypeNone, fmt.Errorf("could not parse %s to a GenPluginType", s)

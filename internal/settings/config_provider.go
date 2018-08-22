@@ -159,28 +159,22 @@ func externalConfigToConfig(e ExternalConfig, dirPath string) (Config, error) {
 		if err != nil {
 			return Config{}, err
 		}
-		pluginPath, err := getPluginPath(plugin.Path)
-		if err != nil {
-			return Config{}, err
-		}
 		genPlugin := GenPlugin{
 			Name:  plugin.Name,
-			Path:  pluginPath,
 			Type:  genPluginType,
 			Flags: plugin.Flags,
 		}
+		pluginPath := plugin.Path
 		pluginOutput := plugin.Output
 		wellKnownPlugin, ok := AliasToWellKnownPlugin[plugin.Alias]
 		if ok {
 			if genPlugin.Name == "" {
 				genPlugin.Name = wellKnownPlugin.Name
 			}
-			if genPlugin.Path == "" {
-				genPlugin.Path = wellKnownPlugin.Path
+			if pluginPath == "" {
+				pluginPath = wellKnownPlugin.Path
 			}
-			// TODO: we need to add "none" to the string values for GenPluginType
-			// so a user can explicitly say not to type a plugin
-			if genPlugin.Type != 0 {
+			if genPlugin.Type == GenPluginTypeUnset {
 				genPlugin.Type = wellKnownPlugin.Type
 			}
 			if genPlugin.Flags == "" {
@@ -190,6 +184,14 @@ func externalConfigToConfig(e ExternalConfig, dirPath string) (Config, error) {
 				pluginOutput = wellKnownPlugin.RelOutputPath
 			}
 		}
+		if genPlugin.Type == GenPluginTypeUnset {
+			genPlugin.Type = GenPluginTypeNone
+		}
+		genPluginPath, err := getPluginPath(pluginPath)
+		if err != nil {
+			return Config{}, err
+		}
+		genPlugin.Path = genPluginPath
 		output := e.Gen.Output
 		if pluginOutput != "" && !filepath.IsAbs(pluginOutput) {
 			output = filepath.Join(output, pluginOutput)

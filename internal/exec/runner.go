@@ -216,7 +216,7 @@ func (r *runner) listWellKnownPlugins() error {
 				return err
 			}
 		}
-		if wellKnownPlugin.Type != 0 && wellKnownPlugin.Type != settings.GenPluginTypeNone {
+		if wellKnownPlugin.Type != settings.GenPluginTypeUnset && wellKnownPlugin.Type != settings.GenPluginTypeNone {
 			if _, err := fmt.Fprintf(tabWriter, "\ttype:\t%s\n", wellKnownPlugin.Type.String()); err != nil {
 				return err
 			}
