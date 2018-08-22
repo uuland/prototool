@@ -1,5 +1,19 @@
 # Well-Known Plugins
 
+* [Well-Known Plugins](#well-known-plugins)
+  * [Proposal Result](#proposal-result)
+  * [Overview](#overview)
+  * [Commits](#commits)
+    * [fa20182fa618ddb501922c35dd73dfca40aea93c Add extended Well-Known Types and write to Prototool cache](#fa20182fa618ddb501922c35dd73dfca40aea93c-add-extended-well-known-types-and-write-to-prototool-cache)
+    * [ca3d2d98ef87e9aaa51eb05901100caf8d790560 Add protoc.include_extended_wkt option and propagate to example](#ca3d2d98ef87e9aaa51eb05901100caf8d790560-add-protocinclude_extended_wkt-option-and-propagate-to-example)
+    * [5f16686a658f6bda28014ece103d76c1f4214646 Allow relative plugin paths](#5f16686a658f6bda28014ece103d76c1f4214646-allow-relative-plugin-paths)
+    * [33e9227fb99c26130e6f6ae8beecc36d764c0f29 Add Well-Known Plugin specifications](#33e9227fb99c26130e6f6ae8beecc36d764c0f29-add-well-known-plugin-specifications)
+    * [09565135b4332a008a85fe541a96044de754df5c Add --list-well-known-plugins flag to generate](#09565135b4332a008a85fe541a96044de754df5c-add---list-well-known-plugins-flag-to-generate)
+    * [98c5005661141726fbefb8e97e812375a067d1fd Wire everything up and add to cfginit](#98c5005661141726fbefb8e97e812375a067d1fd-wire-everything-up-and-add-to-cfginit)
+    * [9be25c78f8437859f1cc83206bea61deff96c187 Fix bugs and add GenPluginTypeUnset](#9be25c78f8437859f1cc83206bea61deff96c187-fix-bugs-and-add-genplugintypeunset)
+    * [The rest of the commits](#the-rest-of-the-commits)
+  * [Where this proposal stops short](#where-this-proposal-stops-short)
+
 This document discusses the [Well-Known Plugins Issue](https://github.com/uber/prototool/issues/2), a proposal of which is implemented on this branch.
 
 ## Proposal Result
