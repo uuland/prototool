@@ -152,6 +152,8 @@ type CompileConfig struct {
 	IncludeWellKnownTypes bool
 	// AllowUnusedImports says to not error when an import is not used.
 	AllowUnusedImports bool
+	//IncludeExtendedWellKnownTypes says to add the extended well-known types with -I to protoc.
+	IncludeExtendedWellKnownTypes bool
 }
 
 // CreateConfig is the create config.
@@ -242,6 +244,7 @@ type ExternalConfig struct {
 		AllowUnusedImports bool     `json:"allow_unused_imports,omitempty" yaml:"allow_unused_imports,omitempty"`
 		Version            string   `json:"version,omitempty" yaml:"version,omitempty"`
 		Includes           []string `json:"includes,omitempty" yaml:"includes,omitempty"`
+		IncludeExtendedWKT bool     `json:"include_extended_wkt,omitempty" yaml:"include_extended_wkt,omitempty"`
 	} `json:"protoc,omitempty" yaml:"protoc,omitempty"`
 	Create struct {
 		Packages []struct {

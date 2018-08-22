@@ -208,10 +208,11 @@ func externalConfigToConfig(e ExternalConfig, dirPath string) (Config, error) {
 		DirPath:         dirPath,
 		ExcludePrefixes: excludePrefixes,
 		Compile: CompileConfig{
-			ProtobufVersion:       e.Protoc.Version,
-			IncludePaths:          includePaths,
-			IncludeWellKnownTypes: true, // Always include the well-known types.
-			AllowUnusedImports:    e.Protoc.AllowUnusedImports,
+			ProtobufVersion:               e.Protoc.Version,
+			IncludePaths:                  includePaths,
+			IncludeWellKnownTypes:         true, // Always include the well-known types.
+			AllowUnusedImports:            e.Protoc.AllowUnusedImports,
+			IncludeExtendedWellKnownTypes: e.Protoc.IncludeExtendedWKT,
 		},
 		Create: CreateConfig{
 			DirPathToBasePackage: createDirPathToBasePackage,

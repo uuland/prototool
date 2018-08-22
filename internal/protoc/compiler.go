@@ -473,6 +473,18 @@ func getPluginFlagSetProtoFlags(protoSet *file.ProtoSet, dirPath string, genPlug
 			goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
 		}
 	}
+	if protoSet.Config.Compile.IncludeExtendedWellKnownTypes {
+		var extendedWKTModifiers map[string]string
+		// one of these two must be true, we validate this above
+		if genPlugin.Type.IsGo() {
+			extendedWKTModifiers = wkt.ExtendedFilenameToGoModifierMap
+		} else if genPlugin.Type.IsGogo() {
+			extendedWKTModifiers = wkt.ExtendedFilenameToGogoModifierMap
+		}
+		for key, value := range extendedWKTModifiers {
+			goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
+		}
+	}
 	for key, value := range genGoPluginOptions.ExtraModifiers {
 		goFlags = append(goFlags, fmt.Sprintf("M%s=%s", key, value))
 	}
@@ -501,6 +513,17 @@ func getIncludes(downloader Downloader, config settings.Config, dirPath string, 
 		includes = append(includes, wellKnownTypesIncludePath)
 		// TODO: not exactly platform independent
 		if strings.HasPrefix(dirPath, wellKnownTypesIncludePath) {
+			fileInIncludePath = true
+		}
+	}
+	if config.Compile.IncludeExtendedWellKnownTypes {
+		extendedWellKnownTypesIncludePath, err := downloader.ExtendedWellKnownTypesIncludePath()
+		if err != nil {
+			return nil, err
+		}
+		includes = append(includes, extendedWellKnownTypesIncludePath)
+		// TODO: not exactly platform independent
+		if strings.HasPrefix(dirPath, extendedWellKnownTypesIncludePath) {
 			fileInIncludePath = true
 		}
 	}
