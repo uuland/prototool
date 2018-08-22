@@ -195,9 +195,6 @@ type LintConfig struct {
 
 // GenConfig is the gen config.
 type GenConfig struct {
-	// The base output path.
-	// This will be concatenated with the individual plugin path.
-	Output string
 	// The go plugin options.
 	GoPluginOptions GenGoPluginOptions
 	// The plugins.
@@ -218,8 +215,6 @@ type GenGoPluginOptions struct {
 
 // GenPlugin is a plugin to use.
 type GenPlugin struct {
-	// The Well-Known Plugin alias.
-	Alias string
 	// The name of the plugin. For example, if you want to use
 	// protoc-gen-gogoslick, the name is "gogoslick".
 	Name string
