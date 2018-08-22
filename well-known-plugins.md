@@ -279,7 +279,7 @@ this is another area that will need to be changed, however this is not the harde
 This commit adds the type `settings.WellKnownPlugin` and adds the values for the Well-Known Plugins. These are referenced by alias,
 as opposed to our previous discussion of just overriding `gen.plugins.name`. The main idea here is that `name` is meant to reference
 either a built-in "plugin" such as `cpp` or `java`, or an installed plugin such as `protoc-gen-go`, however there are situations
-we want to handle, especially with gRPC, that do not map nicely to this concept. Going with the gRPc example, for many gRPC plugins,
+we want to handle, especially with gRPC, that do not map nicely to this concept. Going with the gRPC example, for many gRPC plugins,
 what you really want is a dummy name along with an overriden `path` value. For Golang plugins, you want to add the flag `plugins=grpc`.
 What this comes down to is that it may be confusing to the user to override the `name` concept, and instead it would be nice to say
 "This is an alias for this set of default values," especially as `cpp, cpp-grpc` (most gRPC code generation requires two `*_out` calls)
