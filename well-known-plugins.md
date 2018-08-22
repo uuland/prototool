@@ -326,13 +326,14 @@ at least one of `gen.output` and `gen.plugins.output` are set, we probably want 
 - Adds the logic to handle Well-Known Plugins in the `settings` package. Note that no other code needs to change to handle
 Well-Known Plugins in Prototool - the `GenConfig` and `GenPlugin` structs remain the same (although I had added values for this, I remove
 them in a future commit, more on that below).
-- Updates the example in [example](example) to use the Well-Known Plugins.
+- Updates the example in [example](example) to use the Well-Known Plugins. There is no diff generated between the existing example
+generated code and the generated code on this branch.
 
 ### 9be25c78f8437859f1cc83206bea61deff96c187 Fix bugs and add GenPluginTypeUnset
 
 This commit fixes some bugs that came up on testing, and also adds the `settings.GenPluginTypeUnset` constant. We should differentiate
 between unset and `none` for the plugin type, so that a user could override for example the Well-Known Plugin `gogoslick` to not have
-the type `gogo`, which has the effect of suppressing the generated modifiers. This feature will need to be tested
+the type `gogo`, which has the effect of suppressing the generated modifiers. This feature will need to be tested.
 
 ### The rest of the commits
 
