@@ -52,7 +52,7 @@ type Runner interface {
 	Clean() error
 	Files(args []string) error
 	Compile(args []string, dryRun bool) error
-	Gen(args []string, dryRun bool) error
+	Gen(args []string, dryRun bool, listWellKnownPlugins bool) error
 	DescriptorProto(args []string) error
 	FieldDescriptorProto(args []string) error
 	ServiceDescriptorProto(args []string) error

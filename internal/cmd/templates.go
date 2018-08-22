@@ -211,10 +211,11 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Short: "Generate with protoc.",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
-			return runner.Gen(args, flags.dryRun)
+			return runner.Gen(args, flags.dryRun, flags.listWellKnownPlugins)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
 			flags.bindDryRun(flagSet)
+			flags.bindListWellKnownPlugins(flagSet)
 			flags.bindProtocURL(flagSet)
 		},
 	}

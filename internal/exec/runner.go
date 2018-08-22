@@ -187,7 +187,10 @@ func (r *runner) Compile(args []string, dryRun bool) error {
 	return err
 }
 
-func (r *runner) Gen(args []string, dryRun bool) error {
+func (r *runner) Gen(args []string, dryRun bool, listWellKnownPlugins bool) error {
+	if listWellKnownPlugins {
+		return r.listWellKnownPlugins()
+	}
 	meta, err := r.getMeta(args, 1)
 	if err != nil {
 		return err
@@ -195,6 +198,44 @@ func (r *runner) Gen(args []string, dryRun bool) error {
 	r.printAffectedFiles(meta)
 	_, err = r.compile(true, false, dryRun, meta)
 	return err
+}
+
+func (r *runner) listWellKnownPlugins() error {
+	tabWriter := newTabWriter(r.output)
+	if err := settings.ForEachWellKnownPlugin(func(alias string, wellKnownPlugin settings.WellKnownPlugin) error {
+		if _, err := fmt.Fprintf(tabWriter, "%s:\n", alias); err != nil {
+			return err
+		}
+		if wellKnownPlugin.Name != "" {
+			if _, err := fmt.Fprintf(tabWriter, "\tname:\t%s\n", wellKnownPlugin.Name); err != nil {
+				return err
+			}
+		}
+		if wellKnownPlugin.Path != "" {
+			if _, err := fmt.Fprintf(tabWriter, "\tpath:\t%s\n", wellKnownPlugin.Path); err != nil {
+				return err
+			}
+		}
+		if wellKnownPlugin.Type != 0 && wellKnownPlugin.Type != settings.GenPluginTypeNone {
+			if _, err := fmt.Fprintf(tabWriter, "\ttype:\t%s\n", wellKnownPlugin.Type.String()); err != nil {
+				return err
+			}
+		}
+		if wellKnownPlugin.Flags != "" {
+			if _, err := fmt.Fprintf(tabWriter, "\tflags:\t%s\n", wellKnownPlugin.Flags); err != nil {
+				return err
+			}
+		}
+		if wellKnownPlugin.RelOutputPath != "" {
+			if _, err := fmt.Fprintf(tabWriter, "\toutput:\t%s\n", wellKnownPlugin.RelOutputPath); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return tabWriter.Flush()
 }
 
 func (r *runner) DescriptorProto(args []string) error {

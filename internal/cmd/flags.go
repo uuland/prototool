@@ -25,29 +25,30 @@ import (
 )
 
 type flags struct {
-	address        string
-	cachePath      string
-	callTimeout    string
-	connectTimeout string
-	data           string
-	debug          bool
-	diffMode       bool
-	disableFormat  bool
-	disableLint    bool
-	dryRun         bool
-	fix            bool
-	headers        []string
-	keepaliveTime  string
-	listAllLinters bool
-	listLinters    bool
-	lintMode       bool
-	method         string
-	overwrite      bool
-	pkg            string
-	printFields    string
-	protocURL      string
-	stdin          bool
-	uncomment      bool
+	address              string
+	cachePath            string
+	callTimeout          string
+	connectTimeout       string
+	data                 string
+	debug                bool
+	diffMode             bool
+	disableFormat        bool
+	disableLint          bool
+	dryRun               bool
+	fix                  bool
+	headers              []string
+	keepaliveTime        string
+	listAllLinters       bool
+	listLinters          bool
+	listWellKnownPlugins bool
+	lintMode             bool
+	method               string
+	overwrite            bool
+	pkg                  string
+	printFields          string
+	protocURL            string
+	stdin                bool
+	uncomment            bool
 }
 
 func (f *flags) bindAddress(flagSet *pflag.FlagSet) {
@@ -108,6 +109,10 @@ func (f *flags) bindListAllLinters(flagSet *pflag.FlagSet) {
 
 func (f *flags) bindListLinters(flagSet *pflag.FlagSet) {
 	flagSet.BoolVar(&f.listLinters, "list-linters", false, "List the configured linters instead of running lint.")
+}
+
+func (f *flags) bindListWellKnownPlugins(flagSet *pflag.FlagSet) {
+	flagSet.BoolVar(&f.listWellKnownPlugins, "list-well-known-plugins", false, "List the configured Well-Known Plugins instead of running generate.")
 }
 
 func (f *flags) bindMethod(flagSet *pflag.FlagSet) {
