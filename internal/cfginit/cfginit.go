@@ -46,6 +46,10 @@ protoc:
   {{.V}}includes:
   {{.V}}  - ../../vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis
 
+  # Include the Extended Well-Known Types.
+  # Currently, this is just google/api/annotations.proto and google/api/http.proto.
+  # Note that setting this would mean you would not need to include googleapis in the includes list above.
+  {{.V}}include_extended_wkt: true
 
   # If not set, compile will fail if there are unused imports.
   # Setting this will ignore unused imports.
@@ -93,6 +97,10 @@ protoc:
 
 # Code generation directives.
 {{.V}}generate:
+  # The base output path for all plugins.
+  # If this is specified and a relative output path is also specified for an individual.
+  # plugin, the paths will be concatenated.
+{{.V}}  output: ../../.gen/proto
   # Options that will apply to all plugins of type go and gogo.
 {{.V}}  go_options:
     # The base import path. This should be the go path of the prototool.yaml file.
@@ -100,16 +108,22 @@ protoc:
 {{.V}}    import_path: uber/foo/bar.git/idl/uber
 
     # Extra modifiers to include with Mfile=package.
+    # Note that if include_extended_wkt is set, the below modifiers will be automatically included.
 {{.V}}    extra_modifiers:
 {{.V}}      google/api/annotations.proto: google.golang.org/genproto/googleapis/api/annotations
 {{.V}}      google/api/http.proto: google.golang.org/genproto/googleapis/api/annotations
 
   # The list of plugins.
 {{.V}}  plugins:
+      # The Well-Known Plugin Alias. If set, this will result in default values being set
+      # For all of the other options.
+      # See prototool generate --list-well-known-plugins for the default values for each alias.
+{{.V}}    - alias: gogo-with-grpc
+
       # The plugin name. This will go to protoc with --name_out, so it either needs
       # to be a built-in name (like java), or a plugin name with a binary
       # protoc-gen-name.
-{{.V}}    - name: gogo
+{{.V}}    name: gogo
 
       # The type, if any. Valid types are go, gogo.
       # Use go if your plugin is a standard Golang plugin
@@ -127,23 +141,25 @@ protoc:
       # The path to output generated files to.
       # If the directory does not exist, it will be created when running generation.
       # This needs to be a relative path.
-{{.V}}      output: ../../.gen/proto/go
+      # Note if relative, this is concatenated with the top-level output path.
+{{.V}}      output: go
 
       # Optional override for the plugin path. For example, if you set set path to
       # /usr/local/bin/gogo_plugin", prototool will add the
       # "--plugin=protoc-gen-gogo=/usr/local/bin/gogo_plugin" flag to protoc calls.
+      # Note this can be a program name, and Prototool will search for the program on the PATH.
 {{.V}}      path: /usr/local/bin/gogo
 
 {{.V}}    - name: yarpc-go
 {{.V}}      type: gogo
-{{.V}}      output: ../../.gen/proto/go
+{{.V}}      output: go
 
 {{.V}}    - name: grpc-gateway
 {{.V}}      type: go
-{{.V}}      output: ../../.gen/proto/go
+{{.V}}      output: go
 
 {{.V}}    - name: java
-{{.V}}      output: ../../.gen/proto/java`))
+{{.V}}      output: java`))
 
 type tmplData struct {
 	V             string

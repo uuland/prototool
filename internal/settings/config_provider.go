@@ -159,34 +159,60 @@ func externalConfigToConfig(e ExternalConfig, dirPath string) (Config, error) {
 		if err != nil {
 			return Config{}, err
 		}
-		if plugin.Output == "" {
-			return Config{}, fmt.Errorf("output path required for plugin %s", plugin.Name)
-		}
-		var relPath, absPath string
-		if filepath.IsAbs(plugin.Output) {
-			absPath = filepath.Clean(plugin.Output)
-			relPath, err = filepath.Rel(dirPath, absPath)
-			if err != nil {
-				return Config{}, fmt.Errorf("failed to resolve plugin %q output absolute path %q to a relative path with base %q: %v", plugin.Name, absPath, dirPath, err)
-			}
-		} else {
-			relPath = plugin.Output
-			absPath = filepath.Clean(filepath.Join(dirPath, relPath))
-		}
 		pluginPath, err := getPluginPath(plugin.Path)
 		if err != nil {
 			return Config{}, err
 		}
-		genPlugins[i] = GenPlugin{
+		genPlugin := GenPlugin{
 			Name:  plugin.Name,
 			Path:  pluginPath,
 			Type:  genPluginType,
 			Flags: plugin.Flags,
-			OutputPath: OutputPath{
-				RelPath: relPath,
-				AbsPath: absPath,
-			},
 		}
+		pluginOutput := plugin.Output
+		wellKnownPlugin, ok := AliasToWellKnownPlugin[plugin.Alias]
+		if ok {
+			if genPlugin.Name == "" {
+				genPlugin.Name = wellKnownPlugin.Name
+			}
+			if genPlugin.Path == "" {
+				genPlugin.Path = wellKnownPlugin.Path
+			}
+			// TODO: we need to add "none" to the string values for GenPluginType
+			// so a user can explicitly say not to type a plugin
+			if genPlugin.Type != 0 {
+				genPlugin.Type = wellKnownPlugin.Type
+			}
+			if genPlugin.Flags == "" {
+				genPlugin.Flags = wellKnownPlugin.Flags
+			}
+			if pluginOutput == "" {
+				pluginOutput = wellKnownPlugin.RelOutputPath
+			}
+		}
+		output := e.Gen.Output
+		if pluginOutput != "" && !filepath.IsAbs(pluginOutput) {
+			output = filepath.Join(output, pluginOutput)
+		}
+		if output == "" {
+			return Config{}, fmt.Errorf("output path required for plugin %s", plugin.Name)
+		}
+		var relPath, absPath string
+		if filepath.IsAbs(output) {
+			absPath = filepath.Clean(output)
+			relPath, err = filepath.Rel(dirPath, absPath)
+			if err != nil {
+				return Config{}, fmt.Errorf("failed to resolve plugin %q output absolute path %q to a relative path with base %q: %v", genPlugin.Name, absPath, dirPath, err)
+			}
+		} else {
+			relPath = output
+			absPath = filepath.Clean(filepath.Join(dirPath, relPath))
+		}
+		genPlugin.OutputPath = OutputPath{
+			RelPath: relPath,
+			AbsPath: absPath,
+		}
+		genPlugins[i] = genPlugin
 	}
 	sort.Slice(genPlugins, func(i int, j int) bool { return genPlugins[i].Name < genPlugins[j].Name })
 

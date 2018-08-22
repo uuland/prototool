@@ -185,6 +185,9 @@ type LintConfig struct {
 
 // GenConfig is the gen config.
 type GenConfig struct {
+	// The base output path.
+	// This will be concatenated with the individual plugin path.
+	Output string
 	// The go plugin options.
 	GoPluginOptions GenGoPluginOptions
 	// The plugins.
@@ -205,6 +208,8 @@ type GenGoPluginOptions struct {
 
 // GenPlugin is a plugin to use.
 type GenPlugin struct {
+	// The Well-Known Plugin alias.
+	Alias string
 	// The name of the plugin. For example, if you want to use
 	// protoc-gen-gogoslick, the name is "gogoslick".
 	Name string
@@ -264,11 +269,13 @@ type ExternalConfig struct {
 		}
 	} `json:"lint,omitempty" yaml:"lint,omitempty"`
 	Gen struct {
+		Output    string `json:"output,omitempty" yaml:"output,omitempty"`
 		GoOptions struct {
 			ImportPath     string            `json:"import_path,omitempty" yaml:"import_path,omitempty"`
 			ExtraModifiers map[string]string `json:"extra_modifiers,omitempty" yaml:"extra_modifiers,omitempty"`
 		} `json:"go_options,omitempty" yaml:"go_options,omitempty"`
 		Plugins []struct {
+			Alias  string `json:"alias,omitempty" yaml:"alias,omitempty"`
 			Name   string `json:"name,omitempty" yaml:"name,omitempty"`
 			Type   string `json:"type,omitempty" yaml:"type,omitempty"`
 			Flags  string `json:"flags,omitempty" yaml:"flags,omitempty"`
