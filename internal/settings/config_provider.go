@@ -24,7 +24,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -171,9 +173,13 @@ func externalConfigToConfig(e ExternalConfig, dirPath string) (Config, error) {
 			relPath = plugin.Output
 			absPath = filepath.Clean(filepath.Join(dirPath, relPath))
 		}
+		pluginPath, err := getPluginPath(plugin.Path)
+		if err != nil {
+			return Config{}, err
+		}
 		genPlugins[i] = GenPlugin{
 			Name:  plugin.Name,
-			Path:  plugin.Path,
+			Path:  pluginPath,
 			Type:  genPluginType,
 			Flags: plugin.Flags,
 			OutputPath: OutputPath{
@@ -290,4 +296,27 @@ func getExcludePrefixes(excludes []string, dirPath string) ([]string, error) {
 		excludePrefixes = append(excludePrefixes, excludePrefix)
 	}
 	return excludePrefixes, nil
+}
+
+func getPluginPath(path string) (string, error) {
+	if path == "" {
+		return "", nil
+	}
+	if filepath.IsAbs(path) {
+		return path, nil
+	}
+	return which(path)
+}
+
+func which(program string) (string, error) {
+	switch runtime.GOOS {
+	case "darwin", "linux":
+		output, err := exec.Command("which", program).Output()
+		if err != nil {
+			return "", fmt.Errorf("could not find %q: %v", program, err)
+		}
+		return strings.TrimSpace(string(output)), nil
+	default:
+		return "", fmt.Errorf("runtime.GOOS not supported: %s", runtime.GOOS)
+	}
 }
