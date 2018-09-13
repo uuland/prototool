@@ -62,6 +62,20 @@ var (
 		},
 	}
 
+	checkAPICompatibilityCmdTemplate = &cmdTemplate{
+		Use:   "check-api-compatibility [relDir]",
+		Short: "Check API compatobility between the existing git state and the branch state. Must be run from a git repository directory. Input directory must be relative inside the git repository, or empty.",
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(runner exec.Runner, args []string, flags *flags) error {
+			return runner.CheckAPICompatibility(args, flags.branch)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindBranch(flagSet)
+			flags.bindJSON(flagSet)
+			flags.bindProtocURL(flagSet)
+		},
+	}
+
 	cleanCmdTemplate = &cmdTemplate{
 		Use:   "clean",
 		Short: "Delete the cache.",

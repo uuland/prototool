@@ -40,11 +40,13 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/uber/prototool/internal/cfginit"
+	"github.com/uber/prototool/internal/compat"
 	"github.com/uber/prototool/internal/create"
 	"github.com/uber/prototool/internal/diff"
 	"github.com/uber/prototool/internal/extract"
 	"github.com/uber/prototool/internal/file"
 	"github.com/uber/prototool/internal/format"
+	"github.com/uber/prototool/internal/git"
 	"github.com/uber/prototool/internal/grpc"
 	"github.com/uber/prototool/internal/lint"
 	"github.com/uber/prototool/internal/protoc"
@@ -88,6 +90,21 @@ func newRunner(workDirPath string, input io.Reader, output io.Writer, options ..
 		file.ProtoSetProviderWithLogger(runner.logger),
 	)
 	return runner
+}
+
+func (r *runner) cloneForWorkDirPath(workDirPath string) *runner {
+	return &runner{
+		configProvider:   r.configProvider,
+		protoSetProvider: r.protoSetProvider,
+		workDirPath:      workDirPath,
+		input:            r.input,
+		output:           r.output,
+		logger:           r.logger,
+		cachePath:        r.cachePath,
+		protocURL:        r.protocURL,
+		printFields:      r.printFields,
+		json:             r.json,
+	}
 }
 
 func (r *runner) Version() error {
@@ -641,6 +658,79 @@ func (r *runner) GRPC(args, headers []string, address, method, data, callTimeout
 	).Invoke(fileDescriptorSets, address, method, reader, r.output)
 }
 
+func (r *runner) CheckAPICompatibility(args []string, branch string) error {
+	var relDirPath string
+	// we check length 0 or 1 in cmd, similar to other commands
+	if len(args) == 1 {
+		relDirPath = args[0]
+	}
+	// TODO: see below
+	if filepath.IsAbs(relDirPath) {
+		return fmt.Errorf("input argument must be relative directory path")
+	}
+
+	// this will purposefully fail if we are not at a git repository
+	cloneDirPath, err := git.TemporaryClone(r.workDirPath, branch)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = os.RemoveAll(cloneDirPath)
+	}()
+
+	fromRunner := r.cloneForWorkDirPath(cloneDirPath)
+	toRunner := r
+	from, err := fromRunner.getFileDescriptorSets(relDirPath)
+	if err != nil {
+		return err
+	}
+	to, err := toRunner.getFileDescriptorSets(relDirPath)
+	if err != nil {
+		return err
+	}
+
+	failures, err := r.newCompatRunner().Run(from, to)
+	if err != nil {
+		return err
+	}
+	if len(failures) > 0 {
+		if err := r.printFailures("", nil, failures...); err != nil {
+			return err
+		}
+		return newExitErrorf(255, "")
+	}
+	return nil
+}
+
+// TODO: this is just for CheckAPICompatibility for now
+// we require a relative path (or not path) to be passed but this logic needs to be cleaned up
+// this is largely because getMeta has special handling for "."
+func (r *runner) getFileDescriptorSets(relDirPath string) ([]*descriptor.FileDescriptorSet, error) {
+	dirPath := r.workDirPath
+	if relDirPath != "" && relDirPath != "." {
+		dirPath = filepath.Join(dirPath, relDirPath)
+	}
+	meta, err := r.getMeta([]string{dirPath}, 1)
+	if err != nil {
+		return nil, err
+	}
+	r.printAffectedFiles(meta)
+	fileDescriptorSets, err := r.compile(false, true, false, meta)
+	if err != nil {
+		return nil, err
+	}
+	if len(fileDescriptorSets) == 0 {
+		return nil, fmt.Errorf("no FileDescriptorSets returned")
+	}
+	return fileDescriptorSets, nil
+}
+
+func (r *runner) newCompatRunner() compat.Runner {
+	return compat.NewRunner(
+		compat.RunnerWithLogger(r.logger),
+	)
+}
+
 func (r *runner) newDownloader(config settings.Config) protoc.Downloader {
 	downloaderOptions := []protoc.DownloaderOption{
 		protoc.DownloaderWithLogger(r.logger),
@@ -803,6 +893,7 @@ func (r *runner) getMeta(args []string, lenOfArgsIfSpecified int) (*meta, error)
 // as an error with a non-zero exit code, seems inconsistent, this needs refactoring
 
 // filename is optional
+// meta is optional
 // if set, it will update the Failures to have this filename
 // will be sorted
 func (r *runner) printFailures(filename string, meta *meta, failures ...*text.Failure) error {
@@ -819,21 +910,25 @@ func (r *runner) printFailures(filename string, meta *meta, failures ...*text.Fa
 	bufWriter := bufio.NewWriter(r.output)
 	for _, failure := range failures {
 		shouldPrint := false
-		if meta.SingleFilename == "" || meta.SingleFilename == failure.Filename {
-			shouldPrint = true
-		} else if meta.SingleFilename != "" {
-			// TODO: the compiler may not return the rel path due to logic in bestFilePath
-			absSingleFilename, err := file.AbsClean(meta.SingleFilename)
-			if err != nil {
-				return err
-			}
-			absFailureFilename, err := file.AbsClean(failure.Filename)
-			if err != nil {
-				return err
-			}
-			if absSingleFilename == absFailureFilename {
+		if meta != nil {
+			if meta.SingleFilename == "" || meta.SingleFilename == failure.Filename {
 				shouldPrint = true
+			} else if meta.SingleFilename != "" {
+				// TODO: the compiler may not return the rel path due to logic in bestFilePath
+				absSingleFilename, err := file.AbsClean(meta.SingleFilename)
+				if err != nil {
+					return err
+				}
+				absFailureFilename, err := file.AbsClean(failure.Filename)
+				if err != nil {
+					return err
+				}
+				if absSingleFilename == absFailureFilename {
+					shouldPrint = true
+				}
 			}
+		} else {
+			shouldPrint = true
 		}
 		if shouldPrint {
 			if r.json {

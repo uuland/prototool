@@ -101,6 +101,7 @@ func getRootCommand(exitCodeAddr *int, develMode bool, args []string, stdin io.R
 
 	rootCmd := &cobra.Command{Use: "prototool"}
 	rootCmd.AddCommand(allCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
+	rootCmd.AddCommand(checkAPICompatibilityCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(compileCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(createCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))
 	rootCmd.AddCommand(filesCmdTemplate.Build(exitCodeAddr, stdin, stdout, stderr, flags))

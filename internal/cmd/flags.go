@@ -26,6 +26,7 @@ import (
 
 type flags struct {
 	address        string
+	branch         string
 	cachePath      string
 	callTimeout    string
 	connectTimeout string
@@ -53,6 +54,10 @@ type flags struct {
 
 func (f *flags) bindAddress(flagSet *pflag.FlagSet) {
 	flagSet.StringVar(&f.address, "address", "", "The GRPC endpoint to connect to. This is required.")
+}
+
+func (f *flags) bindBranch(flagSet *pflag.FlagSet) {
+	flagSet.StringVar(&f.branch, "branch", "", "The branch to check from. Defaults to the default branch.")
 }
 
 func (f *flags) bindCachePath(flagSet *pflag.FlagSet) {
