@@ -28,6 +28,7 @@ type flags struct {
 	address        string
 	cachePath      string
 	callTimeout    string
+	configData     string
 	connectTimeout string
 	data           string
 	debug          bool
@@ -38,6 +39,7 @@ type flags struct {
 	fix            bool
 	headers        []string
 	keepaliveTime  string
+	json           bool
 	listAllLinters bool
 	listLinters    bool
 	lintMode       bool
@@ -45,6 +47,8 @@ type flags struct {
 	overwrite      bool
 	pkg            string
 	printFields    string
+	protocBinPath  string
+	protocWKTPath  string
 	protocURL      string
 	stdin          bool
 	uncomment      bool
@@ -60,6 +64,10 @@ func (f *flags) bindCachePath(flagSet *pflag.FlagSet) {
 
 func (f *flags) bindCallTimeout(flagSet *pflag.FlagSet) {
 	flagSet.StringVar(&f.callTimeout, "call-timeout", "60s", "The maximum time to for all calls to be completed.")
+}
+
+func (f *flags) bindConfigData(flagSet *pflag.FlagSet) {
+	flagSet.StringVar(&f.configData, "config-data", "", "The configuration data to use instead of reading prototool.yaml or prototool.json files.\nThis will act as if there is a configuration file with the given data in the current directory, and no other configuration files recursively.\nThis is an advanced feature and is not recommended to be generally used.")
 }
 
 func (f *flags) bindConnectTimeout(flagSet *pflag.FlagSet) {
@@ -98,6 +106,10 @@ func (f *flags) bindKeepaliveTime(flagSet *pflag.FlagSet) {
 	flagSet.StringVar(&f.keepaliveTime, "keepalive-time", "", "The maximum idle time after which a keepalive probe is sent.")
 }
 
+func (f *flags) bindJSON(flagSet *pflag.FlagSet) {
+	flagSet.BoolVar(&f.json, "json", false, "Output as JSON.")
+}
+
 func (f *flags) bindLintMode(flagSet *pflag.FlagSet) {
 	flagSet.BoolVarP(&f.lintMode, "lint", "l", false, "Write a lint error saying that the file is not formatted instead of writing the formatted file to stdout.")
 }
@@ -128,6 +140,14 @@ func (f *flags) bindPrintFields(flagSet *pflag.FlagSet) {
 
 func (f *flags) bindProtocURL(flagSet *pflag.FlagSet) {
 	flagSet.StringVar(&f.protocURL, "protoc-url", "", "The url to use to download the protoc zip file, otherwise uses GitHub Releases. Setting this option will ignore the config protoc.version setting.")
+}
+
+func (f *flags) bindProtocBinPath(flagSet *pflag.FlagSet) {
+	flagSet.StringVar(&f.protocBinPath, "protoc-bin-path", "", "The path to the protoc binary. Setting this option will ignore the config protoc.version setting. This flag must be used with protoc-wkt-path and must not be used with the protoc-url flag.")
+}
+
+func (f *flags) bindProtocWKTPath(flagSet *pflag.FlagSet) {
+	flagSet.StringVar(&f.protocWKTPath, "protoc-wkt-path", "", "The path to the well-known types. Setting this option will ignore the config protoc.version setting. This flag must be used with protoc-bin-path and must not be used with the protoc-url flag.")
 }
 
 func (f *flags) bindStdin(flagSet *pflag.FlagSet) {

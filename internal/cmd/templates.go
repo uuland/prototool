@@ -45,10 +45,14 @@ var (
 			return runner.All(args, flags.disableFormat, flags.disableLint, flags.fix)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDisableFormat(flagSet)
 			flags.bindDisableLint(flagSet)
+			flags.bindJSON(flagSet)
 			flags.bindFix(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -58,6 +62,9 @@ var (
 		Args:  cobra.RangeArgs(2, 3),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.BinaryToJSON(args)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -79,8 +86,12 @@ var (
 			return runner.Compile(args, flags.dryRun)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDryRun(flagSet)
+			flags.bindJSON(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -102,16 +113,16 @@ This matches what the linter expects. "SOME.PKG" will be computed as follows:
 
 - If "--package" is specified, "SOME.PKG" will be the value passed to
   "--package".
-- Otherwise, if there is no "prototool.yaml" that would apply to the new file,
-  use "uber.prototool.generated".
-- Otherwise, if there is a "prototool.yaml" file, check if it has a
-  "packages" setting under the "create" section. If it does, this
+- Otherwise, if there is no "prototool.yaml" or "prototool.json" that would
+  apply to the new file, use "uber.prototool.generated".
+- Otherwise, if there is a "prototool.yaml" or "prototool.json" file, check if
+  it has a "packages" setting under the "create" section. If it does, this
   package, concatenated with the relative path from the directory with the
- "prototool.yaml" will be used.
+ "prototool.yaml" or "prototool.json" will be used.
 - Otherwise, if there is no "packages" directive, just use the
-  relative path from the directory with the "prototool.yaml" file. If the file
-  is in the same directory as the "prototool.yaml" file, use
-  "uber.prototool.generated".
+  relative path from the directory with the "prototool.yaml" or
+  "prototool.json" file. If the file is in the same directory as the
+  "prototool.yaml" or "prototool.json" file, use "uber.prototool.generated".
 
 For example, assume you have the following file at "repo/prototool.yaml":
 
@@ -135,7 +146,7 @@ create:
 
 This is meant to mimic what you generally want - a base package for your idl directory, followed by packages matching the directory structure.
 
-Note you can override the directory that the "prototool.yaml" file is in as well. If we update our file at "repo/prototool.yaml" to this:
+Note you can override the directory that the "prototool.yaml" or "prototool.json" file is in as well. If we update our file at "repo/prototool.yaml" to this:
 
 create:
   packages:
@@ -150,6 +161,7 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Create(args, flags.pkg)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindPackage(flagSet)
 		},
 	}
@@ -161,6 +173,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.DescriptorProto(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	downloadCmdTemplate = &cmdTemplate{
@@ -169,6 +184,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Args:  cobra.NoArgs,
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Download()
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -179,6 +197,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.FieldDescriptorProto(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	filesCmdTemplate = &cmdTemplate{
@@ -187,6 +208,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Files(args)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -198,11 +222,15 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Format(args, flags.overwrite, flags.diffMode, flags.lintMode, flags.fix)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDiffMode(flagSet)
+			flags.bindJSON(flagSet)
 			flags.bindLintMode(flagSet)
 			flags.bindOverwrite(flagSet)
 			flags.bindFix(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -214,8 +242,12 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Gen(args, flags.dryRun)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDryRun(flagSet)
+			flags.bindJSON(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -295,6 +327,7 @@ $ cat input.json | prototool grpc example \
 			return runner.GRPC(args, flags.headers, flags.address, flags.method, flags.data, flags.callTimeout, flags.connectTimeout, flags.keepaliveTime, flags.stdin)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindAddress(flagSet)
 			flags.bindCallTimeout(flagSet)
 			flags.bindConnectTimeout(flagSet)
@@ -304,6 +337,8 @@ $ cat input.json | prototool grpc example \
 			flags.bindMethod(flagSet)
 			flags.bindStdin(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -327,20 +362,27 @@ $ cat input.json | prototool grpc example \
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.JSONToBinary(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	lintCmdTemplate = &cmdTemplate{
 		Use:   "lint [dirOrFile]",
 		Short: "Lint proto files and compile with protoc to check for failures.",
-		Long:  `The default rule set follows the Style Guide at https://github.com/uber/prototool/blob/master/etc/style/uber/uber.proto. You can add or exclude lint rules in your "prototool.yaml" file. The default rule set is very strict and is meant to enforce consistent development patterns.`,
+		Long:  `The default rule set follows the Style Guide at https://github.com/uber/prototool/blob/master/etc/style/uber/uber.proto. You can add or exclude lint rules in your configuration file. The default rule set is very strict and is meant to enforce consistent development patterns.`,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Lint(args, flags.listAllLinters, flags.listLinters)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+			flags.bindJSON(flagSet)
 			flags.bindListAllLinters(flagSet)
 			flags.bindListLinters(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -369,12 +411,18 @@ $ cat input.json | prototool grpc example \
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.ServiceDescriptorProto(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	versionCmdTemplate = &cmdTemplate{
 		Use:   "version",
 		Short: "Print the version.",
 		Args:  cobra.NoArgs,
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindJSON(flagSet)
+		},
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Version()
 		},
@@ -458,6 +506,30 @@ func getRunner(stdin io.Reader, stdout io.Writer, stderr io.Writer, flags *flags
 		runnerOptions = append(
 			runnerOptions,
 			exec.RunnerWithCachePath(flags.cachePath),
+		)
+	}
+	if flags.configData != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithConfigData(flags.configData),
+		)
+	}
+	if flags.json {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithJSON(),
+		)
+	}
+	if flags.protocBinPath != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithProtocBinPath(flags.protocBinPath),
+		)
+	}
+	if flags.protocWKTPath != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithProtocWKTPath(flags.protocWKTPath),
 		)
 	}
 	if flags.printFields != "" {

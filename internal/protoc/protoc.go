@@ -84,9 +84,24 @@ func DownloaderWithCachePath(cachePath string) DownloaderOption {
 	}
 }
 
+// DownloaderWithProtocBinPath returns a DownloaderOption that uses the given protoc binary path.
+func DownloaderWithProtocBinPath(protocBinPath string) DownloaderOption {
+	return func(downloader *downloader) {
+		downloader.protocBinPath = protocBinPath
+	}
+}
+
+// DownloaderWithProtocWKTPath returns a DownloaderOption that uses the given path to include
+// the well-known types.
+func DownloaderWithProtocWKTPath(protocWKTPath string) DownloaderOption {
+	return func(downloader *downloader) {
+		downloader.protocWKTPath = protocWKTPath
+	}
+}
+
 // DownloaderWithProtocURL returns a DownloaderOption that uses the given protoc zip file URL.
 //
-// The default is https://github.com/google/protobuf/releases/download/vVERSION/protoc-VERSION-OS-ARCH.zip.
+// The default is https://github.com/protocolbuffers/protobuf/releases/download/vVERSION/protoc-VERSION-OS-ARCH.zip.
 func DownloaderWithProtocURL(protocURL string) DownloaderOption {
 	return func(downloader *downloader) {
 		downloader.protocURL = protocURL
@@ -94,7 +109,7 @@ func DownloaderWithProtocURL(protocURL string) DownloaderOption {
 }
 
 // NewDownloader returns a new Downloader for the given config and DownloaderOptions.
-func NewDownloader(config settings.Config, options ...DownloaderOption) Downloader {
+func NewDownloader(config settings.Config, options ...DownloaderOption) (Downloader, error) {
 	return newDownloader(config, options...)
 }
 
@@ -146,9 +161,25 @@ func CompilerWithCachePath(cachePath string) CompilerOption {
 	}
 }
 
+// CompilerWithProtocBinPath returns a CompilerOption that uses the given protoc binary path.
+//
+func CompilerWithProtocBinPath(protocBinPath string) CompilerOption {
+	return func(compiler *compiler) {
+		compiler.protocBinPath = protocBinPath
+	}
+}
+
+// CompilerWithProtocWKTPath returns a CompilerOption that uses the given path to include the
+// well-known types.
+func CompilerWithProtocWKTPath(protocWKTPath string) CompilerOption {
+	return func(compiler *compiler) {
+		compiler.protocWKTPath = protocWKTPath
+	}
+}
+
 // CompilerWithProtocURL returns a CompilerOption that uses the given protoc zip file URL.
 //
-// The default is https://github.com/google/protobuf/releases/download/vVERSION/protoc-VERSION-OS-ARCH.zip.
+// The default is https://github.com/protocolbuffers/protobuf/releases/download/vVERSION/protoc-VERSION-OS-ARCH.zip.
 func CompilerWithProtocURL(protocURL string) CompilerOption {
 	return func(compiler *compiler) {
 		compiler.protocURL = protocURL
