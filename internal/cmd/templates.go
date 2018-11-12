@@ -45,11 +45,14 @@ var (
 			return runner.All(args, flags.disableFormat, flags.disableLint, flags.fix)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDisableFormat(flagSet)
 			flags.bindDisableLint(flagSet)
 			flags.bindJSON(flagSet)
 			flags.bindFix(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -59,6 +62,9 @@ var (
 		Args:  cobra.RangeArgs(2, 3),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.BinaryToJSON(args)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -94,9 +100,12 @@ var (
 			return runner.Compile(args, flags.dryRun)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDryRun(flagSet)
 			flags.bindJSON(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -166,6 +175,7 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Create(args, flags.pkg)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindPackage(flagSet)
 		},
 	}
@@ -177,6 +187,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.DescriptorProto(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	downloadCmdTemplate = &cmdTemplate{
@@ -185,6 +198,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Args:  cobra.NoArgs,
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Download()
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -195,6 +211,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.FieldDescriptorProto(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	filesCmdTemplate = &cmdTemplate{
@@ -203,6 +222,9 @@ If Vim integration is set up, files will be generated when you open a new Protob
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.Files(args)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -214,12 +236,15 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Format(args, flags.overwrite, flags.diffMode, flags.lintMode, flags.fix)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDiffMode(flagSet)
 			flags.bindJSON(flagSet)
 			flags.bindLintMode(flagSet)
 			flags.bindOverwrite(flagSet)
 			flags.bindFix(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -231,9 +256,12 @@ If Vim integration is set up, files will be generated when you open a new Protob
 			return runner.Gen(args, flags.dryRun)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindDryRun(flagSet)
 			flags.bindJSON(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -313,6 +341,7 @@ $ cat input.json | prototool grpc example \
 			return runner.GRPC(args, flags.headers, flags.address, flags.method, flags.data, flags.callTimeout, flags.connectTimeout, flags.keepaliveTime, flags.stdin)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindAddress(flagSet)
 			flags.bindCallTimeout(flagSet)
 			flags.bindConnectTimeout(flagSet)
@@ -322,6 +351,8 @@ $ cat input.json | prototool grpc example \
 			flags.bindMethod(flagSet)
 			flags.bindStdin(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -345,6 +376,9 @@ $ cat input.json | prototool grpc example \
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.JSONToBinary(args)
 		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
+		},
 	}
 
 	lintCmdTemplate = &cmdTemplate{
@@ -356,10 +390,13 @@ $ cat input.json | prototool grpc example \
 			return runner.Lint(args, flags.listAllLinters, flags.listLinters)
 		},
 		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 			flags.bindJSON(flagSet)
 			flags.bindListAllLinters(flagSet)
 			flags.bindListLinters(flagSet)
 			flags.bindProtocURL(flagSet)
+			flags.bindProtocBinPath(flagSet)
+			flags.bindProtocWKTPath(flagSet)
 		},
 	}
 
@@ -387,6 +424,9 @@ $ cat input.json | prototool grpc example \
 		Args:  cobra.RangeArgs(1, 2),
 		Run: func(runner exec.Runner, args []string, flags *flags) error {
 			return runner.ServiceDescriptorProto(args)
+		},
+		BindFlags: func(flagSet *pflag.FlagSet, flags *flags) {
+			flags.bindConfigData(flagSet)
 		},
 	}
 
@@ -482,10 +522,28 @@ func getRunner(stdin io.Reader, stdout io.Writer, stderr io.Writer, flags *flags
 			exec.RunnerWithCachePath(flags.cachePath),
 		)
 	}
+	if flags.configData != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithConfigData(flags.configData),
+		)
+	}
 	if flags.json {
 		runnerOptions = append(
 			runnerOptions,
 			exec.RunnerWithJSON(),
+		)
+	}
+	if flags.protocBinPath != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithProtocBinPath(flags.protocBinPath),
+		)
+	}
+	if flags.protocWKTPath != "" {
+		runnerOptions = append(
+			runnerOptions,
+			exec.RunnerWithProtocWKTPath(flags.protocWKTPath),
 		)
 	}
 	if flags.printFields != "" {

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -euo pipefail
+set -eu
 
 DIR="$(cd "$(dirname "${0}")/../.." && pwd)"
 cd "${DIR}"
@@ -17,7 +17,7 @@ mkdir -p "${BUILD_DIR}/share/man/man1"
 go run internal/cmd/gen-prototool-bash-completion/main.go > "${BUILD_DIR}/etc/bash_completion.d/prototool"
 go run internal/cmd/gen-prototool-zsh-completion/main.go > "${BUILD_DIR}/etc/zsh/site-functions/_prototool"
 go run internal/cmd/gen-prototool-manpages/main.go "${BUILD_DIR}/share/man/man1"
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 \
+CGO_ENABLED=0 \
   go build \
   -a \
   -installsuffix cgo \

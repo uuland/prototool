@@ -67,11 +67,14 @@ type runner struct {
 	input       io.Reader
 	output      io.Writer
 
-	logger      *zap.Logger
-	cachePath   string
-	protocURL   string
-	printFields string
-	json        bool
+	logger        *zap.Logger
+	cachePath     string
+	configData    string
+	protocBinPath string
+	protocWKTPath string
+	protocURL     string
+	printFields   string
+	json          bool
 }
 
 func newRunner(workDirPath string, input io.Reader, output io.Writer, options ...RunnerOption) *runner {
@@ -86,9 +89,16 @@ func newRunner(workDirPath string, input io.Reader, output io.Writer, options ..
 	runner.configProvider = settings.NewConfigProvider(
 		settings.ConfigProviderWithLogger(runner.logger),
 	)
-	runner.protoSetProvider = file.NewProtoSetProvider(
+	protoSetProviderOptions := []file.ProtoSetProviderOption{
 		file.ProtoSetProviderWithLogger(runner.logger),
-	)
+	}
+	if runner.configData != "" {
+		protoSetProviderOptions = append(
+			protoSetProviderOptions,
+			file.ProtoSetProviderWithConfigData(runner.configData),
+		)
+	}
+	runner.protoSetProvider = file.NewProtoSetProvider(protoSetProviderOptions...)
 	return runner
 }
 
@@ -194,7 +204,11 @@ func (r *runner) Download() error {
 	if err != nil {
 		return err
 	}
-	path, err := r.newDownloader(config).Download()
+	d, err := r.newDownloader(config)
+	if err != nil {
+		return err
+	}
+	path, err := d.Download()
 	if err != nil {
 		return err
 	}
@@ -206,7 +220,11 @@ func (r *runner) Clean() error {
 	if err != nil {
 		return err
 	}
-	return r.newDownloader(config).Delete()
+	d, err := r.newDownloader(config)
+	if err != nil {
+		return err
+	}
+	return d.Delete()
 }
 
 func (r *runner) Files(args []string) error {
@@ -731,7 +749,7 @@ func (r *runner) newCompatRunner() compat.Runner {
 	)
 }
 
-func (r *runner) newDownloader(config settings.Config) protoc.Downloader {
+func (r *runner) newDownloader(config settings.Config) (protoc.Downloader, error) {
 	downloaderOptions := []protoc.DownloaderOption{
 		protoc.DownloaderWithLogger(r.logger),
 	}
@@ -739,6 +757,18 @@ func (r *runner) newDownloader(config settings.Config) protoc.Downloader {
 		downloaderOptions = append(
 			downloaderOptions,
 			protoc.DownloaderWithCachePath(r.cachePath),
+		)
+	}
+	if r.protocBinPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			protoc.DownloaderWithProtocBinPath(r.protocBinPath),
+		)
+	}
+	if r.protocWKTPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			protoc.DownloaderWithProtocWKTPath(r.protocWKTPath),
 		)
 	}
 	if r.protocURL != "" {
@@ -758,6 +788,18 @@ func (r *runner) newCompiler(doGen bool, doFileDescriptorSet bool) protoc.Compil
 		compilerOptions = append(
 			compilerOptions,
 			protoc.CompilerWithCachePath(r.cachePath),
+		)
+	}
+	if r.protocBinPath != "" {
+		compilerOptions = append(
+			compilerOptions,
+			protoc.CompilerWithProtocBinPath(r.protocBinPath),
+		)
+	}
+	if r.protocWKTPath != "" {
+		compilerOptions = append(
+			compilerOptions,
+			protoc.CompilerWithProtocWKTPath(r.protocWKTPath),
 		)
 	}
 	if r.protocURL != "" {
@@ -840,6 +882,9 @@ func (r *runner) newGRPCHandler(
 }
 
 func (r *runner) getConfig(dirPath string) (settings.Config, error) {
+	if r.configData != "" {
+		return r.configProvider.GetForData(dirPath, r.configData)
+	}
 	return r.configProvider.GetForDir(dirPath)
 }
 

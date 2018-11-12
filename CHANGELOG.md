@@ -5,9 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- No changes yet.
+
+
+## [1.3.0] - 2018-09-17
 ### Added
 - Accept `prototool.json` files for configuation in addition to
   `prototool.yaml` files.
+- Add `--config-data` flag.
+- Add `--protoc-bin-path` and `--protoc-wkt-path` flags to manually
+  set the paths for where `protoc` is run and where the
+  Well-Known Types are included from.
 
 
 ## [1.2.0] - 2018-08-29
@@ -154,7 +162,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Initial release.
 
-[Unreleased]: https://github.com/uber/prototool/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/uber/prototool/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/uber/prototool/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/uber/prototool/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/uber/prototool/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/uber/prototool/compare/v1.0.0-rc1...v1.0.0
