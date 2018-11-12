@@ -68,6 +68,8 @@ var (
 type compiler struct {
 	logger              *zap.Logger
 	cachePath           string
+	protocBinPath       string
+	protocWKTPath       string
 	protocURL           string
 	doGen               bool
 	doFileDescriptorSet bool
@@ -266,9 +268,12 @@ func (c *compiler) getCmdMetas(protoSet *file.ProtoSet) (cmdMetas []*cmdMeta, re
 			cmdMetas = nil
 		}
 	}()
-	// you need a new downloader for every ProtoSet as each prototool.yaml could
+	// you need a new downloader for every ProtoSet as each configuration file could
 	// have a different protoc.version value
-	downloader := c.newDownloader(protoSet.Config)
+	downloader, err := c.newDownloader(protoSet.Config)
+	if err != nil {
+		return nil, err
+	}
 	if _, err := downloader.Download(); err != nil {
 		return cmdMetas, err
 	}
@@ -280,10 +285,10 @@ func (c *compiler) getCmdMetas(protoSet *file.ProtoSet) (cmdMetas []*cmdMeta, re
 		//
 		// This does what I'd expect `prototool` to do out of the box:
 		//
-		// - If a prototool.yaml file is present, use that as the root for your imports.
+		// - If a configuration file is present, use that as the root for your imports.
 		//   So if you have a/b/prototool.yaml and a/b/c/d/one.proto, a/b/c/e/two.proto,
 		//   you'd import c/d/one.proto in two.proto.
-		// - If there's no prototool.yaml file, I expect my imports to start with the current directory.
+		// - If there's no configuration file, I expect my imports to start with the current directory.
 		configDirPath := protoSet.Config.DirPath
 		if configDirPath == "" {
 			configDirPath = protoSet.WorkDirPath
@@ -354,7 +359,7 @@ func (c *compiler) getCmdMetas(protoSet *file.ProtoSet) (cmdMetas []*cmdMeta, re
 	return cmdMetas, nil
 }
 
-func (c *compiler) newDownloader(config settings.Config) Downloader {
+func (c *compiler) newDownloader(config settings.Config) (Downloader, error) {
 	downloaderOptions := []DownloaderOption{
 		DownloaderWithLogger(c.logger),
 	}
@@ -362,6 +367,18 @@ func (c *compiler) newDownloader(config settings.Config) Downloader {
 		downloaderOptions = append(
 			downloaderOptions,
 			DownloaderWithCachePath(c.cachePath),
+		)
+	}
+	if c.protocBinPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			DownloaderWithProtocBinPath(c.protocBinPath),
+		)
+	}
+	if c.protocWKTPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			DownloaderWithProtocWKTPath(c.protocWKTPath),
 		)
 	}
 	if c.protocURL != "" {

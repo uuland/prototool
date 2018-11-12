@@ -85,10 +85,17 @@ func RunnerWithCachePath(cachePath string) RunnerOption {
 	}
 }
 
-// RunnerWithProtocURL returns a RunnerOption that uses the given protoc zip file URL.
-func RunnerWithProtocURL(protocURL string) RunnerOption {
+// RunnerWithConfigData returns a RunnerOption that uses the given config path.
+func RunnerWithConfigData(configData string) RunnerOption {
 	return func(runner *runner) {
-		runner.protocURL = protocURL
+		runner.configData = configData
+	}
+}
+
+// RunnerWithJSON returns a RunnerOption that will print failures as JSON.
+func RunnerWithJSON() RunnerOption {
+	return func(runner *runner) {
+		runner.json = true
 	}
 }
 
@@ -97,6 +104,27 @@ func RunnerWithProtocURL(protocURL string) RunnerOption {
 func RunnerWithPrintFields(printFields string) RunnerOption {
 	return func(runner *runner) {
 		runner.printFields = printFields
+	}
+}
+
+// RunnerWithProtocBinPath returns a RunnerOption that uses the given protoc binary path.
+func RunnerWithProtocBinPath(protocBinPath string) RunnerOption {
+	return func(runner *runner) {
+		runner.protocBinPath = protocBinPath
+	}
+}
+
+// RunnerWithProtocWKTPath returns a RunnerOption that uses the given path to include the well-known types.
+func RunnerWithProtocWKTPath(protocWKTPath string) RunnerOption {
+	return func(runner *runner) {
+		runner.protocWKTPath = protocWKTPath
+	}
+}
+
+// RunnerWithProtocURL returns a RunnerOption that uses the given protoc zip file URL.
+func RunnerWithProtocURL(protocURL string) RunnerOption {
+	return func(runner *runner) {
+		runner.protocURL = protocURL
 	}
 }
 

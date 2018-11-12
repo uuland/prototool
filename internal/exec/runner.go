@@ -23,6 +23,7 @@ package exec
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -64,10 +65,14 @@ type runner struct {
 	input       io.Reader
 	output      io.Writer
 
-	logger      *zap.Logger
-	cachePath   string
-	protocURL   string
-	printFields string
+	logger        *zap.Logger
+	cachePath     string
+	configData    string
+	protocBinPath string
+	protocWKTPath string
+	protocURL     string
+	printFields   string
+	json          bool
 }
 
 func newRunner(workDirPath string, input io.Reader, output io.Writer, options ...RunnerOption) *runner {
@@ -82,34 +87,69 @@ func newRunner(workDirPath string, input io.Reader, output io.Writer, options ..
 	runner.configProvider = settings.NewConfigProvider(
 		settings.ConfigProviderWithLogger(runner.logger),
 	)
-	runner.protoSetProvider = file.NewProtoSetProvider(
+	protoSetProviderOptions := []file.ProtoSetProviderOption{
 		file.ProtoSetProviderWithLogger(runner.logger),
-	)
+	}
+	if runner.configData != "" {
+		protoSetProviderOptions = append(
+			protoSetProviderOptions,
+			file.ProtoSetProviderWithConfigData(runner.configData),
+		)
+	}
+	runner.protoSetProvider = file.NewProtoSetProvider(protoSetProviderOptions...)
 	return runner
 }
 
 func (r *runner) Version() error {
+	out := struct {
+		Version              string `json:"version,omitempty"`
+		DefaultProtocVersion string `json:"default_protoc_version,omitempty"`
+		GoVersion            string `json:"go_version,omitempty"`
+		GitCommit            string `json:"git_commit,omitempty"`
+		BuiltTimestamp       string `json:"built_timestamp,omitempty"`
+		GOOS                 string `json:"goos,omitempty"`
+		GOARCH               string `json:"goarch,omitempty"`
+	}{
+		Version:              vars.Version,
+		DefaultProtocVersion: vars.DefaultProtocVersion,
+		GoVersion:            runtime.Version(),
+		GitCommit:            vars.GitCommit,
+		BuiltTimestamp:       vars.BuiltTimestamp,
+		GOOS:                 runtime.GOOS,
+		GOARCH:               runtime.GOARCH,
+	}
+
+	if r.json {
+		enc := json.NewEncoder(r.output)
+		enc.SetIndent("", "  ")
+
+		if err := enc.Encode(out); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	tabWriter := newTabWriter(r.output)
-	if _, err := fmt.Fprintf(tabWriter, "Version:\t%s\n", vars.Version); err != nil {
+	if _, err := fmt.Fprintf(tabWriter, "Version:\t%s\n", out.Version); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(tabWriter, "Default protoc version:\t%s\n", vars.DefaultProtocVersion); err != nil {
+	if _, err := fmt.Fprintf(tabWriter, "Default protoc version:\t%s\n", out.DefaultProtocVersion); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(tabWriter, "Go version:\t%s\n", runtime.Version()); err != nil {
+	if _, err := fmt.Fprintf(tabWriter, "Go version:\t%s\n", out.GoVersion); err != nil {
 		return err
 	}
-	if vars.GitCommit != "" {
-		if _, err := fmt.Fprintf(tabWriter, "Git commit:\t%s\n", vars.GitCommit); err != nil {
+	if out.GitCommit != "" {
+		if _, err := fmt.Fprintf(tabWriter, "Git commit:\t%s\n", out.GitCommit); err != nil {
 			return err
 		}
 	}
-	if vars.BuiltTimestamp != "" {
-		if _, err := fmt.Fprintf(tabWriter, "Built:\t%s\n", vars.BuiltTimestamp); err != nil {
+	if out.BuiltTimestamp != "" {
+		if _, err := fmt.Fprintf(tabWriter, "Built:\t%s\n", out.BuiltTimestamp); err != nil {
 			return err
 		}
 	}
-	if _, err := fmt.Fprintf(tabWriter, "OS/Arch:\t%s/%s\n", runtime.GOOS, runtime.GOARCH); err != nil {
+	if _, err := fmt.Fprintf(tabWriter, "OS/Arch:\t%s/%s\n", out.GOOS, out.GOARCH); err != nil {
 		return err
 	}
 	return tabWriter.Flush()
@@ -147,7 +187,11 @@ func (r *runner) Download() error {
 	if err != nil {
 		return err
 	}
-	path, err := r.newDownloader(config).Download()
+	d, err := r.newDownloader(config)
+	if err != nil {
+		return err
+	}
+	path, err := d.Download()
 	if err != nil {
 		return err
 	}
@@ -159,7 +203,11 @@ func (r *runner) Clean() error {
 	if err != nil {
 		return err
 	}
-	return r.newDownloader(config).Delete()
+	d, err := r.newDownloader(config)
+	if err != nil {
+		return err
+	}
+	return d.Delete()
 }
 
 func (r *runner) Files(args []string) error {
@@ -652,7 +700,7 @@ func (r *runner) GRPC(args, headers []string, address, method, data, callTimeout
 	).Invoke(fileDescriptorSets, address, method, reader, r.output)
 }
 
-func (r *runner) newDownloader(config settings.Config) protoc.Downloader {
+func (r *runner) newDownloader(config settings.Config) (protoc.Downloader, error) {
 	downloaderOptions := []protoc.DownloaderOption{
 		protoc.DownloaderWithLogger(r.logger),
 	}
@@ -660,6 +708,18 @@ func (r *runner) newDownloader(config settings.Config) protoc.Downloader {
 		downloaderOptions = append(
 			downloaderOptions,
 			protoc.DownloaderWithCachePath(r.cachePath),
+		)
+	}
+	if r.protocBinPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			protoc.DownloaderWithProtocBinPath(r.protocBinPath),
+		)
+	}
+	if r.protocWKTPath != "" {
+		downloaderOptions = append(
+			downloaderOptions,
+			protoc.DownloaderWithProtocWKTPath(r.protocWKTPath),
 		)
 	}
 	if r.protocURL != "" {
@@ -679,6 +739,18 @@ func (r *runner) newCompiler(doGen bool, doFileDescriptorSet bool) protoc.Compil
 		compilerOptions = append(
 			compilerOptions,
 			protoc.CompilerWithCachePath(r.cachePath),
+		)
+	}
+	if r.protocBinPath != "" {
+		compilerOptions = append(
+			compilerOptions,
+			protoc.CompilerWithProtocBinPath(r.protocBinPath),
+		)
+	}
+	if r.protocWKTPath != "" {
+		compilerOptions = append(
+			compilerOptions,
+			protoc.CompilerWithProtocWKTPath(r.protocWKTPath),
 		)
 	}
 	if r.protocURL != "" {
@@ -761,6 +833,9 @@ func (r *runner) newGRPCHandler(
 }
 
 func (r *runner) getConfig(dirPath string) (settings.Config, error) {
+	if r.configData != "" {
+		return r.configProvider.GetForData(dirPath, r.configData)
+	}
 	return r.configProvider.GetForDir(dirPath)
 }
 
@@ -847,7 +922,15 @@ func (r *runner) printFailures(filename string, meta *meta, failures ...*text.Fa
 			}
 		}
 		if shouldPrint {
-			if err := failure.Fprintln(bufWriter, failureFields...); err != nil {
+			if r.json {
+				data, err := json.Marshal(failure)
+				if err != nil {
+					return err
+				}
+				if _, err := fmt.Fprintln(bufWriter, string(data)); err != nil {
+					return err
+				}
+			} else if err := failure.Fprintln(bufWriter, failureFields...); err != nil {
 				return err
 			}
 		}

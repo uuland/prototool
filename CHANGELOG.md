@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - No changes yet.
 
 
+## [1.3.0] - 2018-09-17
+### Added
+- Accept `prototool.json` files for configuation in addition to
+  `prototool.yaml` files.
+- Add `--config-data` flag.
+- Add `--protoc-bin-path` and `--protoc-wkt-path` flags to manually
+  set the paths for where `protoc` is run and where the
+  Well-Known Types are included from.
+
+
+## [1.2.0] - 2018-08-29
+### Added
+- Add `json` flag to `all`, `compile`, `format`, `generate` and `lint` commands.
+
+
+## [1.1.0] - 2018-08-24
+### Added
+- Add support for Homebrew builds.
+
+
+## [1.0.0] - 2018-08-23
+- Initial release.
+
+
 ## [1.0.0-rc1] 2018-08-16
 ### Fixed
 - Fixed regression where `prototool version` did not output 'Git commit' and
@@ -138,7 +162,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Initial release.
 
-[Unreleased]: https://github.com/uber/prototool/compare/v1.0.0-rc1...HEAD
+[Unreleased]: https://github.com/uber/prototool/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/uber/prototool/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/uber/prototool/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/uber/prototool/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/uber/prototool/compare/v1.0.0-rc1...v1.0.0
 [1.0.0-rc1]: https://github.com/uber/prototool/compare/v0.7.1...v1.0.0-rc1
 [0.7.1]: https://github.com/uber/prototool/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/uber/prototool/compare/v0.6.0...v0.7.0
