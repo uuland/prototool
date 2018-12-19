@@ -57,6 +57,22 @@ func IsCamelCase(s string) bool {
 	return true
 }
 
+// Similar with CamelCase but must begin with a lowercase character
+func IsLowerCamelCase(s string) bool {
+	if IsCamelCase(s) && isLower(rune(s[0])) {
+		return true
+	}
+	return false
+}
+
+// Similar with CamelCase but must begin with a uppercase character
+func IsUpperCamelCase(s string) bool {
+	if IsCamelCase(s) && isUpper(rune(s[0])) {
+		return true
+	}
+	return false
+}
+
 // IsLowerSnakeCase returns true if s only contains lowercase letters,
 // digits, and/or underscores. s MUST NOT begin or end with an underscore.
 func IsLowerSnakeCase(s string) bool {
@@ -188,7 +204,7 @@ func IsUppercase(s string) bool {
 func toSnake(s string) string {
 	output := ""
 	for i, c := range s {
-		if i > 0 && isUpper(c) && output[len(output)-1] != '_' && i < len(s)-1 && !isUpper(rune(s[i+1])) {
+		if i > 0 && isUpper(c) && output[len(output)-1] != '_' && ((i < len(s)-1 && !isUpper(rune(s[i+1]))) || (isLower(rune(s[i-1])))) {
 			output += "_" + string(c)
 		} else {
 			output += string(c)

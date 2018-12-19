@@ -18,30 +18,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-//
-// Some variables are populated at build time using ldflags.
-package vars
+package lint
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
-
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+import (
+	"github.com/emicklei/proto"
+	"github.com/uber/prototool/internal/strs"
+	"github.com/uber/prototool/internal/text"
 )
 
-var (
-	// GitCommit is the git commit used to build the binary.
-	//
-	// This is populated at build time using ldflags.
-	GitCommit string
-
-	// BuiltTimestamp is the time at which the binary was built.
-	//
-	// This is populated at build time using ldflags.
-	BuiltTimestamp string
+var rpcNamesLowerCamelCaseLinter = NewLinter(
+	"RPC_NAMES_LOWER_CAMEL_CASE",
+	"Verifies that all RPC names are lower CamelCase.",
+	checkRPCNamesLowerCamelCase,
 )
+
+func checkRPCNamesLowerCamelCase(add func(*text.Failure), dirPath string, descriptors []*proto.Proto) error {
+	return runVisitor(rpcNamesLowerCamelCaseVisitor{baseAddVisitor: newBaseAddVisitor(add)}, descriptors)
+}
+
+type rpcNamesLowerCamelCaseVisitor struct {
+	baseAddVisitor
+}
+
+func (v rpcNamesLowerCamelCaseVisitor) VisitService(service *proto.Service) {
+	for _, child := range service.Elements {
+		child.Accept(v)
+	}
+}
+
+func (v rpcNamesLowerCamelCaseVisitor) VisitRPC(rpc *proto.RPC) {
+	if !strs.IsLowerCamelCase(rpc.Name) {
+		v.AddFailuref(rpc.Position, "RPC name %q must be lower CamelCase.", rpc.Name)
+	}
+}

@@ -18,30 +18,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-//
-// Some variables are populated at build time using ldflags.
-package vars
+package lint
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
-
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+import (
+	"github.com/emicklei/proto"
+	"github.com/uber/prototool/internal/strs"
+	"github.com/uber/prototool/internal/text"
 )
 
-var (
-	// GitCommit is the git commit used to build the binary.
-	//
-	// This is populated at build time using ldflags.
-	GitCommit string
-
-	// BuiltTimestamp is the time at which the binary was built.
-	//
-	// This is populated at build time using ldflags.
-	BuiltTimestamp string
+var messageNamesUpperCamelCaseLinter = NewLinter(
+	"MESSAGE_NAMES_UPPER_CAMEL_CASE",
+	"Verifies that all non-extended message names are upper CamelCase.",
+	checkMessageNamesUpperCamelCase,
 )
+
+func checkMessageNamesUpperCamelCase(add func(*text.Failure), dirPath string, descriptors []*proto.Proto) error {
+	return runVisitor(messageNamesUpperCamelCaseVisitor{baseAddVisitor: newBaseAddVisitor(add)}, descriptors)
+}
+
+type messageNamesUpperCamelCaseVisitor struct {
+	baseAddVisitor
+}
+
+func (v messageNamesUpperCamelCaseVisitor) VisitMessage(message *proto.Message) {
+	// for nested messages
+	for _, child := range message.Elements {
+		child.Accept(v)
+	}
+	if message.IsExtend {
+		return
+	}
+	if !strs.IsUpperCamelCase(message.Name) {
+		v.AddFailuref(message.Position, "Message name %q must be upper CamelCase.", message.Name)
+	}
+}
