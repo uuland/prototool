@@ -18,16 +18,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+package location
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
+import (
+	"testing"
 
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestSpan(t *testing.T) {
+	tests := []struct {
+		desc       string
+		giveSpan   []int32
+		wantLine   int32
+		wantCol    int32
+		wantString string
+	}{
+		{
+			desc:       "Default value",
+			wantLine:   1,
+			wantCol:    1,
+			wantString: "1:1",
+		},
+		{
+			desc:       "Equal line, col",
+			giveSpan:   []int32{1, 1},
+			wantLine:   2,
+			wantCol:    2,
+			wantString: "2:2",
+		},
+		{
+			desc:       "Unequal line, col",
+			giveSpan:   []int32{1, 2},
+			wantLine:   2,
+			wantCol:    3,
+			wantString: "2:3",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			s := NewSpan(tt.giveSpan)
+			assert.Equal(t, tt.wantLine, s.Line())
+			assert.Equal(t, tt.wantCol, s.Col())
+			assert.Equal(t, tt.wantString, s.String())
+		})
+	}
+}

@@ -18,16 +18,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+// +build tools
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
+// Package tools blank imports Golang tools we use as part of
+// the Prototool build.
+package tools
 
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+import (
+	_ "github.com/golang/lint/golint"      // tool
+	_ "github.com/kisielk/errcheck"        // tool
+	_ "github.com/wadey/gocovmerge"        // tool
+	_ "go.uber.org/tools/update-license"   // tool
+	_ "golang.org/x/lint"                  // tool
+	_ "golang.org/x/tools/cmd/cover"       // tool
+	_ "honnef.co/go/tools/cmd/staticcheck" // tool
+	_ "honnef.co/go/tools/cmd/unused"      // tool
 )

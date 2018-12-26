@@ -18,16 +18,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+package compatible
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
+import (
+	"testing"
 
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+// checkerFn is is a generic representation for compatibility
+// check functions.
+type checkerFn func(descriptorProtoGroup, descriptorProtoGroup)
+
+// check executes the given fn, and asserts that the expected error,
+// if any, is equivalent to the one found on the fileChecker.
+func check(t *testing.T, c *fileChecker, fn checkerFn, original, updated descriptorProtoGroup, err string) {
+	fn(original, updated)
+	if err == "" {
+		assert.Empty(t, c.errors)
+		return
+	}
+	require.Len(t, c.errors, 1)
+	assert.Equal(t, c.errors[0].String(), err)
+}

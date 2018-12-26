@@ -18,16 +18,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+package location
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
-
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
+// Comments represents a Proto location's comment details.
+type Comments struct {
+	// Leading is the comment that exists before
+	// a proto type's definition.
 	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
-)
+	//  /* I'm a leading comment. */
+	//  message Foo {}
+	//
+	Leading string
+
+	// Trailing is the comment that exists
+	// immediately after a proto type's definition.
+	//
+	//  message Foo {} /* I'm a trailing comment. */
+	//
+	Trailing string
+
+	// LeadingDetached are comments that exists
+	// before a proto type's definition, separated
+	// by at least one newline.
+	//
+	//  /* I'm a leading detached comment. */
+	//
+	//  message Foo {}
+	//
+	LeadingDetached []string
+}

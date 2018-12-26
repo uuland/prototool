@@ -18,16 +18,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+package location
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
+import (
+	"testing"
 
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestPath(t *testing.T) {
+	var base Path
+	t.Run("Scope", func(t *testing.T) {
+		foo := base.Scope(Message, 0)
+		bar := base.Scope(Message, 0)
+		assert.Equal(t, foo, bar)
+
+		// Updating one should not change the other.
+		foo = foo.Scope(Field, 0)
+		assert.Equal(t, Path{4, 0, 2, 0}, foo)
+		assert.NotEqual(t, foo, bar)
+	})
+	t.Run("Target", func(t *testing.T) {
+		foo := base.Target(Name)
+		bar := base.Target(Name)
+		assert.Equal(t, foo, bar)
+
+		// Updating one should not change the other.
+		foo = foo.Target(Name)
+		assert.Equal(t, Path{1, 1}, foo)
+		assert.NotEqual(t, foo, bar)
+	})
+}

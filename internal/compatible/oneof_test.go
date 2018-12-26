@@ -18,16 +18,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package vars contains static variables used in Prototool.
-package vars
+package compatible
 
-const (
-	// Version is the current version.
-	Version = "1.4.0-dev"
+import (
+	"testing"
 
-	// DefaultProtocVersion is the default version of protoc from
-	// github.com/protocolbuffers/protobuf to use.
-	//
-	// See https://github.com/protocolbuffers/protobuf/releases for the latest release.
-	DefaultProtocVersion = "3.6.1"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestOneof(t *testing.T) {
+	tests := []struct {
+		desc     string
+		original oneofs
+		updated  oneofs
+		err      string
+	}{
+		{
+			desc:     "Valid update",
+			original: oneofs{"foo": &oneof{name: "foo"}},
+			updated:  oneofs{"foo": &oneof{name: "foo"}, "bar": &oneof{name: "bar"}},
+		},
+		{
+			desc:     "Removed oneof",
+			original: oneofs{"foo": &oneof{name: "foo"}},
+			updated:  oneofs{"bar": &oneof{name: "bar"}},
+			err:      `test.proto:1:1:wire:Oneof "foo" was removed.`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			c := newTestChecker(t)
+			fn := func(o, u descriptorProtoGroup) {
+				c.checkOneofs(o.(oneofs), u.(oneofs))
+			}
+			check(t, c, fn, tt.original, tt.updated, tt.err)
+		})
+	}
+}
+
+func TestNewOneof(t *testing.T) {
+	o := newOneof(&descriptor.OneofDescriptorProto{Name: proto.String("oneof")}, nil /* location.Path */)
+	assert.Equal(t, "oneof", o.name)
+}
