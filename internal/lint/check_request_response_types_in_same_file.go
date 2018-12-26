@@ -26,6 +26,7 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/uber/prototool/internal/text"
+	"github.com/uber/prototool/internal/wkt"
 )
 
 var requestResponseTypesInSameFileLinter = NewLinter(
@@ -78,8 +79,8 @@ func (v *requestResponseTypesInSameFileVisitor) VisitService(service *proto.Serv
 func (v *requestResponseTypesInSameFileVisitor) VisitRPC(rpc *proto.RPC) {
 	v.rpcs = append(v.rpcs, &requestResponseTypesInSameFileVisitorRPCMapKey{
 		Position:     rpc.Position,
-		RequestType:  rpc.RequestType,
-		ResponseType: rpc.ReturnsType,
+		RequestType:  rpcTypeFilter(rpc.RequestType),
+		ResponseType: rpcTypeFilter(rpc.ReturnsType),
 	})
 }
 
@@ -88,15 +89,19 @@ func (v *requestResponseTypesInSameFileVisitor) Finally() error {
 		v.messageTypes = make(map[string]struct{})
 	}
 	for _, rpc := range v.rpcs {
-		if _, ok := v.messageTypes[rpc.RequestType]; !ok {
-			v.AddFailuref(rpc.Position, "Request type %q should be defined in the same file as the corresponding service.", rpc.RequestType)
-		} else if strings.ContainsRune(rpc.RequestType, '.') {
-			v.AddFailuref(rpc.Position, "Request type %q is a nested message and only top-level messages should be request types.", rpc.RequestType)
+		if rpc.RequestType != "" {
+			if _, ok := v.messageTypes[rpc.RequestType]; !ok {
+				v.AddFailuref(rpc.Position, "Request type %q should be defined in the same file as the corresponding service.", rpc.RequestType)
+			} else if strings.ContainsRune(rpc.RequestType, '.') {
+				v.AddFailuref(rpc.Position, "Request type %q is a nested message and only top-level messages should be request types.", rpc.RequestType)
+			}
 		}
-		if _, ok := v.messageTypes[rpc.ResponseType]; !ok {
-			v.AddFailuref(rpc.Position, "Response type %q should be defined in the same file as the corresponding service.", rpc.ResponseType)
-		} else if strings.ContainsRune(rpc.ResponseType, '.') {
-			v.AddFailuref(rpc.Position, "Response type %q is a nested message and only top-level messages should be response types.", rpc.ResponseType)
+		if rpc.ResponseType != "" {
+			if _, ok := v.messageTypes[rpc.ResponseType]; !ok {
+				v.AddFailuref(rpc.Position, "Response type %q should be defined in the same file as the corresponding service.", rpc.ResponseType)
+			} else if strings.ContainsRune(rpc.ResponseType, '.') {
+				v.AddFailuref(rpc.Position, "Response type %q is a nested message and only top-level messages should be response types.", rpc.ResponseType)
+			}
 		}
 	}
 	return nil
@@ -106,4 +111,12 @@ type requestResponseTypesInSameFileVisitorRPCMapKey struct {
 	Position     scanner.Position
 	RequestType  string
 	ResponseType string
+}
+
+func rpcTypeFilter(typed string) string {
+	if strings.HasPrefix(typed, wkt.PACKAGE) {
+		return ""
+	} else {
+		return typed
+	}
 }

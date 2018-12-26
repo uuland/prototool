@@ -21,8 +21,11 @@
 package lint
 
 import (
+	"strings"
+
 	"github.com/emicklei/proto"
 	"github.com/uber/prototool/internal/text"
+	"github.com/uber/prototool/internal/wkt"
 )
 
 var requestResponseTypesUniqueLinter = NewLinter(
@@ -56,7 +59,7 @@ func (v *requestResponseTypesUniqueVisitor) VisitRPC(rpc *proto.RPC) {
 		v.seenTypes = make(map[string]struct{})
 	}
 	for _, s := range []string{rpc.RequestType, rpc.ReturnsType} {
-		if _, ok := v.seenTypes[s]; ok {
+		if _, ok := v.seenTypes[s]; ok && !strings.HasPrefix(s, wkt.PACKAGE) {
 			v.AddFailuref(rpc.Position, "Message %q is already used as a request or response type in an RPC and all request and response types must be unique.", s)
 		}
 		v.seenTypes[s] = struct{}{}

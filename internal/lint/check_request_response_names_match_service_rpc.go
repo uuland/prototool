@@ -21,9 +21,12 @@
 package lint
 
 import (
+	"strings"
+
 	"github.com/emicklei/proto"
 	"github.com/uber/prototool/internal/strs"
 	"github.com/uber/prototool/internal/text"
+	"github.com/uber/prototool/internal/wkt"
 )
 
 var requestResponseNamesMatchServiceRPCLinter = NewLinter(
@@ -49,10 +52,10 @@ func (v requestResponseNamesMatchServiceRPCVisitor) VisitService(service *proto.
 func (v requestResponseNamesMatchServiceRPCVisitor) VisitRPC(rpc *proto.RPC) {
 	svc, _ := rpc.Parent.(*proto.Service)
 	pfx := svc.Name + strs.ToUpperCamelCase(rpc.Name)
-	if rpc.RequestType != pfx+"Request" {
+	if rpc.RequestType != pfx+"Request" && !strings.HasPrefix(rpc.RequestType, wkt.PACKAGE) {
 		v.AddFailuref(rpc.Position, "Name of request type %q should be %q.", rpc.RequestType, pfx+"Request")
 	}
-	if rpc.ReturnsType != pfx+"Response" {
+	if rpc.ReturnsType != pfx+"Response" && !strings.HasPrefix(rpc.ReturnsType, wkt.PACKAGE) {
 		v.AddFailuref(rpc.Position, "Name of response type %q should be %q.", rpc.ReturnsType, pfx+"Response")
 	}
 }
