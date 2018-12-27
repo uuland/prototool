@@ -25,6 +25,10 @@
 // https://developers.google.com/protocol-buffers/docs/reference/google.protobuf
 package wkt
 
+const (
+	PACKAGE = "google.protobuf"
+)
+
 var (
 	// Filenames contains the Google Well-Known Types filenames.
 	Filenames = map[string]struct{}{

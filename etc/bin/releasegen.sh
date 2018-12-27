@@ -22,9 +22,6 @@ goarch() {
 
 BASE_DIR="release"
 
-go get github.com/Masterminds/glide
-rm -rf vendor
-glide install
 rm -rf "${BASE_DIR}"
 for os in Darwin Linux; do
   for arch in x86_64; do
@@ -42,9 +39,8 @@ for os in Darwin Linux; do
       go build \
       -a \
       -installsuffix cgo \
-      -ldflags "-X 'github.com/uber/prototool/internal/vars.GitCommit=$(git rev-list -1 HEAD)' -X 'github.com/uber/prototool/internal/vars.BuiltTimestamp=$(date -u)'" \
       -o "${dir}/bin/prototool" \
-      internal/cmd/prototool/main.go
+      cmd/prototool/main.go
     tar -C "${tar_context_dir}" -cvzf "${BASE_DIR}/prototool-${os}-${arch}.tar.gz" "${tar_dir}"
     cp "${dir}/bin/prototool" "${BASE_DIR}/prototool-${os}-${arch}"
   done
